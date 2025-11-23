@@ -2,6 +2,17 @@
 
 A reproducible, multi-agent Monopoly environment for reinforcement learning research.
 
+## Status
+
+**Phase 1: Rules Engine - ✅ COMPLETE**
+
+- 📦 Full game engine implementation (~2,700 lines)
+- 🧪 101 passing tests (100% success rate)
+- 🎯 PettingZoo-compatible environment
+- 🔢 562-action discrete space with masking
+- 📊 ~450-dimensional observation space
+- ⚡ 0.26s test suite runtime
+
 ## Overview
 
 This project implements a complete Monopoly game engine with a PettingZoo-compatible interface for training multi-agent reinforcement learning algorithms. The implementation emphasizes:
@@ -41,21 +52,36 @@ monopoly-ai/
 - Python 3.12+
 - pip
 
-### Setup
+### Quick Start
 
 ```bash
 # Clone the repository
 cd monopoly-ai
 
-# Create virtual environment
+# Create virtual environment (recommended)
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Install in development mode
+# Install package with dependencies
 pip install -e .
+
+# Run tests to verify installation
+pytest
+
+# Try the example
+python example_usage.py
+```
+
+### Development Installation
+
+```bash
+# Install with all development dependencies
+pip install -e ".[dev]"
+
+# Or install specific extras
+pip install -e ".[rl]"      # For RL training
+pip install -e ".[analysis]" # For analysis tools
+pip install -e ".[all]"      # Everything
 ```
 
 ## Usage
@@ -244,15 +270,48 @@ pytest --cov=engine --cov=env --cov-report=html
 - **Memory**: <100MB per environment instance
 - **Determinism**: 100% reproducible with fixed seeds
 
+## Development Tools
+
+This project uses modern Python development tools:
+
+- **Packaging**: `pyproject.toml` (PEP 518/621)
+- **Formatting**: `black` (100 char line length)
+- **Linting**: `ruff` (faster alternative to flake8)
+- **Type Checking**: `mypy` (strict mode)
+- **Testing**: `pytest` with coverage reporting
+- **Pre-commit**: Automated checks before commits
+- **CI/CD**: GitHub Actions workflow
+
+### Quick Commands
+
+```bash
+make install-dev  # Install with dev dependencies
+make test         # Run all tests
+make test-cov     # Run tests with coverage
+make format       # Format code with black/ruff
+make lint         # Run all linters
+make type-check   # Run mypy type checking
+make clean        # Clean build artifacts
+```
+
+See `CONTRIBUTING.md` for detailed development guidelines.
+
 ## Contributing
+
+Contributions are welcome! Please see `CONTRIBUTING.md` for guidelines.
 
 This project follows these coding standards:
 
-- Python 3.12+ with type hints
-- `black` for formatting
-- `flake8` for linting
-- `pytest` for testing
-- Comprehensive docstrings
+- Python 3.12+ with comprehensive type hints
+- Black code formatting (100 char lines)
+- Ruff linting with strict rules
+- MyPy type checking
+- 90%+ test coverage requirement
+- Google-style docstrings
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## References
 

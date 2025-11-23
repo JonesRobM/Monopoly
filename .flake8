@@ -1,0 +1,28 @@
+[flake8]
+# Flake8 configuration for Monopoly AI project
+# Note: Consider using ruff instead (configured in pyproject.toml)
+
+max-line-length = 100
+extend-ignore = E203, E266, E501, W503
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    build,
+    dist,
+    *.egg-info,
+    .pytest_cache,
+    .mypy_cache,
+    .tox,
+    htmlcov
+
+# McCabe complexity
+max-complexity = 10
+
+# Docstring conventions
+docstring-convention = google
+
+per-file-ignores =
+    __init__.py:F401
+    tests/*:F401,F811
