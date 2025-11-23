@@ -12,8 +12,8 @@ class TestMonopolyBoard:
 
     @pytest.fixture
     def board(self):
-        """Create a board instance for testing."""
-        return MonopolyBoard()
+        """Create a board instance for testing (classic 40-tile hardcoded board)."""
+        return MonopolyBoard(use_hardcoded=True)
 
     def test_board_has_40_tiles(self, board):
         """Test board has exactly 40 tiles."""

@@ -29,11 +29,13 @@ class PropertyGroup(Enum):
     BROWN = "brown"
     LIGHT_BLUE = "light_blue"
     PINK = "pink"
+    PURPLE = "purple"
     ORANGE = "orange"
     RED = "red"
     YELLOW = "yellow"
     GREEN = "green"
     DARK_BLUE = "dark_blue"
+    SPECIAL = "special"
     RAILROAD = "railroad"
     UTILITY = "utility"
 

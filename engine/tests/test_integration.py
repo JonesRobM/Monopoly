@@ -69,7 +69,7 @@ class TestCompleteGameFlow:
     @pytest.fixture
     def game_setup(self):
         """Setup a game with board, rules, and initial state."""
-        board = MonopolyBoard()
+        board = MonopolyBoard(use_hardcoded=True)
         config = GameConfig(num_players=2, seed=42)
         rules = RulesEngine(board, config)
 
@@ -217,7 +217,7 @@ class TestFullGameSimulation:
 
     def test_simple_two_player_game(self):
         """Test a simple 2-player game for several turns."""
-        board = MonopolyBoard()
+        board = MonopolyBoard(use_hardcoded=True)
         config = GameConfig(num_players=2, seed=12345)
         rules = RulesEngine(board, config)
 
@@ -310,7 +310,7 @@ class TestPropertyDevelopment:
 
     def test_build_houses_on_monopoly(self):
         """Test building houses on a monopoly."""
-        board = MonopolyBoard()
+        board = MonopolyBoard(use_hardcoded=True)
         config = GameConfig()
         rules = RulesEngine(board, config)
 
@@ -341,7 +341,7 @@ class TestPropertyDevelopment:
 
     def test_mortgage_and_unmortgage_cycle(self):
         """Test mortgaging and unmortgaging a property."""
-        board = MonopolyBoard()
+        board = MonopolyBoard(use_hardcoded=True)
 
         players = [PlayerState(player_id=0, name="Player 1", cash=100)]
         players[0].owned_properties = {1}

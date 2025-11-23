@@ -10,8 +10,8 @@ from engine.rules import RulesEngine
 
 @pytest.fixture
 def board():
-    """Create board fixture."""
-    return MonopolyBoard()
+    """Create board fixture (classic 40-tile hardcoded board)."""
+    return MonopolyBoard(use_hardcoded=True)
 
 
 @pytest.fixture

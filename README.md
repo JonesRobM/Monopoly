@@ -309,6 +309,59 @@ This project follows these coding standards:
 - 90%+ test coverage requirement
 - Google-style docstrings
 
+## Troubleshooting
+
+### NumPy Warnings on Windows
+
+If you see warnings about "MINGW-W64" or "experimental" when running the examples on Windows:
+
+```
+Warning: Numpy built with MINGW-W64 on Windows 64 bits is experimental...
+```
+
+**These warnings are harmless** but annoying. They come from NumPy's experimental Windows build.
+
+**Solutions:**
+
+1. **Suppress warnings in your script** (already done in `example_usage.py`):
+   ```python
+   import warnings
+   warnings.filterwarnings("ignore", message=".*MINGW-W64.*")
+   warnings.filterwarnings("ignore", category=RuntimeWarning, module="numpy")
+   ```
+
+2. **Use environment variable**:
+   ```bash
+   # Windows PowerShell
+   $env:PYTHONWARNINGS="ignore::RuntimeWarning"
+   python example_usage.py
+
+   # Windows CMD
+   set PYTHONWARNINGS=ignore::RuntimeWarning
+   python example_usage.py
+   ```
+
+3. **Install a different NumPy build** (if issues persist):
+   ```bash
+   pip uninstall numpy
+   pip install numpy --only-binary :all:
+   ```
+
+### Import Errors
+
+If you get import errors, make sure you've installed the package:
+```bash
+pip install -e .
+```
+
+### Test Failures
+
+If tests fail, ensure you're in the project root directory:
+```bash
+cd /path/to/monopoly-ai
+pytest
+```
+
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.

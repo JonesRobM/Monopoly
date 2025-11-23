@@ -2,27 +2,71 @@
 Board representation for Monopoly.
 
 Defines the standard 40-tile Monopoly board with all properties, railroads,
-utilities, and special tiles.
+utilities, and special tiles. Also supports loading custom board configurations
+from JSON files.
 """
 
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Optional
 from engine.state import (
     TileInfo, TileType, PropertyInfo, RailroadInfo, UtilityInfo,
     PropertyGroup
+)
+from engine.board_config import (
+    load_board_config, get_default_board, BoardMetadata
 )
 
 
 class MonopolyBoard:
     """
-    Standard Monopoly board with 40 tiles.
+    Monopoly board with configurable tiles.
 
-    Tile numbering: 0 (GO) to 39 (Boardwalk)
+    By default, loads the Stoke-on-Trent board (41 tiles).
+    Can also load custom boards or use the hardcoded classic board.
+
+    Tile numbering: 0 (GO) to N-1 (last tile)
     """
 
-    def __init__(self):
-        """Initialize the standard Monopoly board."""
-        self.tiles: Dict[int, TileInfo] = self._create_board()
-        self.property_groups: Dict[PropertyGroup, List[int]] = self._create_property_groups()
+    def __init__(
+        self,
+        board_name: Optional[str] = None,
+        use_hardcoded: bool = False
+    ):
+        """
+        Initialize a Monopoly board.
+
+        Args:
+            board_name: Name of board to load from JSON (e.g., "stoke_on_trent").
+                       If None, loads default board (Stoke-on-Trent).
+            use_hardcoded: If True, use the hardcoded classic 40-tile board
+                          instead of loading from JSON.
+
+        Examples:
+            # Load default Stoke-on-Trent board
+            board = MonopolyBoard()
+
+            # Load specific board
+            board = MonopolyBoard("stoke_on_trent")
+
+            # Use hardcoded classic board
+            board = MonopolyBoard(use_hardcoded=True)
+        """
+        if use_hardcoded:
+            # Use hardcoded classic board
+            self.tiles: Dict[int, TileInfo] = self._create_board()
+            self.property_groups: Dict[PropertyGroup, List[int]] = self._create_property_groups()
+            self.metadata: Optional[BoardMetadata] = None
+            self.num_tiles: int = 40
+        else:
+            # Load from JSON configuration
+            if board_name is None:
+                tiles, groups, meta = get_default_board()
+            else:
+                tiles, groups, meta = load_board_config(board_name)
+
+            self.tiles = tiles
+            self.property_groups = groups
+            self.metadata = meta
+            self.num_tiles = meta.num_tiles
 
     def _create_board(self) -> Dict[int, TileInfo]:
         """Create all 40 tiles of the standard Monopoly board."""
@@ -692,7 +736,7 @@ class MonopolyBoard:
 
     def get_group_tiles(self, group: PropertyGroup) -> List[int]:
         """Get all tile IDs in a property group."""
-        return self.property_groups[group]
+        return self.property_groups.get(group, [])
 
     def has_monopoly(self, owned_tiles: Set[int], group: PropertyGroup) -> bool:
         """Check if a player owns all properties in a group."""

@@ -2,10 +2,16 @@
 Example usage of the Monopoly AI environment.
 
 This script demonstrates:
-1. Basic environment usage with random agents
-2. Direct engine usage
-3. Deterministic game reproduction
+1. Board configuration and selection
+2. Basic environment usage with random agents
+3. Direct engine usage
+4. Deterministic game reproduction
 """
+
+# Suppress NumPy warnings on Windows (MINGW-W64 experimental build warnings)
+import warnings
+warnings.filterwarnings("ignore", message=".*MINGW-W64.*")
+warnings.filterwarnings("ignore", category=RuntimeWarning, module="numpy")
 
 import numpy as np
 from env import MonopolyEnv
@@ -13,12 +19,58 @@ from engine import (
     MonopolyBoard, GameState, PlayerState, GameConfig,
     RulesEngine, move_player, purchase_property
 )
+from engine.board_config import list_available_boards
+from engine.state import PropertyGroup
+
+
+def example_board_selection():
+    """Example: Using different board configurations."""
+    print("\n" + "="*60)
+    print("Example 1: Board Configuration and Selection")
+    print("="*60)
+
+    # List available boards
+    available = list_available_boards()
+    print(f"\nAvailable boards: {available}")
+
+    # Load default board (Stoke-on-Trent)
+    print("\n--- Default Board: Stoke-on-Trent ---")
+    board_default = MonopolyBoard()
+    print(f"Board: {board_default.metadata.name}")
+    print(f"Description: {board_default.metadata.description}")
+    print(f"Total tiles: {board_default.num_tiles}")
+    print(f"GO Salary: {board_default.metadata.currency_symbol}{board_default.metadata.go_salary}")
+
+    # Show some custom tiles
+    print(f"\nSample properties:")
+    print(f"  Tile 1: {board_default.get_tile(1).name} (Brown)")
+    print(f"  Tile 25: {board_default.get_tile(25).name} (Green)")
+    print(f"  Tile 33: {board_default.get_tile(33).name} (Special)")
+
+    # Show the special property group
+    special_group = board_default.get_group_tiles(PropertyGroup.SPECIAL)
+    print(f"\nSpecial property group ({len(special_group)} properties):")
+    for tile_id in special_group:
+        print(f"  - {board_default.get_tile(tile_id).name}")
+
+    # Load classic hardcoded board
+    print("\n--- Classic Board (Hardcoded) ---")
+    board_classic = MonopolyBoard(use_hardcoded=True)
+    print(f"Total tiles: {board_classic.num_tiles}")
+    print(f"Tile 1: {board_classic.get_tile(1).name} (Brown)")
+    print(f"Tile 25: {board_classic.get_tile(25).name} (Yellow)")
+
+    # Compare boards
+    print(f"\nBoard comparison:")
+    print(f"  Stoke-on-Trent: {board_default.num_tiles} tiles")
+    print(f"  Classic: {board_classic.num_tiles} tiles")
+    print(f"  Difference: {board_default.num_tiles - board_classic.num_tiles} tile(s)")
 
 
 def example_environment_usage():
     """Example: Using the PettingZoo environment with random agents."""
     print("\n" + "="*60)
-    print("Example 1: PettingZoo Environment with Random Agents")
+    print("Example 2: PettingZoo Environment with Random Agents")
     print("="*60)
 
     # Create environment
@@ -59,7 +111,7 @@ def example_environment_usage():
 def example_engine_usage():
     """Example: Using the game engine directly."""
     print("\n" + "="*60)
-    print("Example 2: Direct Engine Usage")
+    print("Example 3: Direct Engine Usage")
     print("="*60)
 
     # Create board and rules
@@ -106,7 +158,7 @@ def example_engine_usage():
 def example_deterministic_reproduction():
     """Example: Demonstrating deterministic game reproduction."""
     print("\n" + "="*60)
-    print("Example 3: Deterministic Game Reproduction")
+    print("Example 4: Deterministic Game Reproduction")
     print("="*60)
 
     def play_game(seed):
@@ -150,8 +202,26 @@ def example_deterministic_reproduction():
 
 if __name__ == "__main__":
     # Run examples
+    print("\n" + "="*60)
+    print("Monopoly AI Environment - Example Usage")
+    print("="*60)
+    example_board_selection()
+    print("\n" + "="*60)
+    print("Example 1: Board Selection")
+    print("="*60)
     example_environment_usage()
+    print("\n" + "="*60)
+    print("Example 2: Environment Usage")
+    print("="*60)
     example_engine_usage()
+    print("\n" + "="*60)
+    print("Example 3: Direct Engine Usage")
+    print("="*60)
+    example_deterministic_reproduction()
+
+    print("\n" + "="*60)
+    print("Example 4: Deterministic Game Reproduction")
+    print("="*60)
     example_deterministic_reproduction()
 
     print("\n" + "="*60)
