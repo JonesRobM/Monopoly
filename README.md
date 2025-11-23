@@ -28,7 +28,9 @@ This project implements a complete Monopoly game engine with a PettingZoo-compat
 monopoly-ai/
 ├── engine/                 # Core game engine
 │   ├── state.py           # Game state structures
-│   ├── board.py           # 40-tile Monopoly board
+│   ├── board.py           # Monopoly board (40 or 41 tiles)
+│   ├── board_config.py    # Board configuration loader
+│   ├── boards/            # Board configurations (JSON)
 │   ├── rules.py           # Game rules and validation
 │   ├── cards.py           # Chance and Community Chest
 │   ├── actions.py         # Action space definition
@@ -39,9 +41,19 @@ monopoly-ai/
 │   ├── encoding.py        # State → observation encoding
 │   ├── action_masking.py  # Legal action masks
 │   └── utils.py           # Utilities
+├── visualization/         # Graphical rendering (pygame)
+│   ├── renderer.py        # Main renderer
+│   ├── board_layout.py    # Board geometry
+│   ├── tile_renderer.py   # Tile rendering
+│   ├── player_renderer.py # Player pieces and buildings
+│   ├── animation.py       # Animation system
+│   ├── info_panel.py      # Game state display
+│   ├── colors.py          # Color definitions
+│   └── tests/             # Visualization tests
 ├── agents/                # Agent implementations (future)
 ├── training/              # Training scripts (future)
 ├── analysis/              # Evaluation tools (future)
+├── examples/              # Demo scripts
 └── requirements.txt       # Python dependencies
 ```
 
@@ -189,8 +201,48 @@ pytest --cov=engine --cov=env --cov-report=html
 
 - ❌ Free Parking pool (optional house rule)
 - ❌ Natural language trade negotiation
-- ❌ GUI rendering
 - ❌ Human-in-the-loop play
+
+## Visualization
+
+The project includes a complete graphical visualization system using pygame. Watch AI agents play in real-time with:
+
+- Full board rendering with property colors
+- Animated player movement
+- Houses and hotels display
+- Property ownership indicators
+- Real-time game state panel
+- Message notifications
+
+### Running Visualization Demos
+
+```bash
+# Interactive visualization demo
+python examples/demo_visualization.py
+
+# Watch AI agents play with visualization
+python examples/demo_env_with_viz.py --players 4 --step-delay 0.5
+```
+
+### Using Visualization in Code
+
+```python
+from env import MonopolyEnv
+
+# Create environment with pygame rendering
+env = MonopolyEnv(num_players=4, render_mode="pygame")
+
+# Game loop
+env.reset()
+for _ in range(100):
+    action = agent.select_action(env.observe(env.agent_selection))
+    env.step(action)
+    env.render()  # Shows graphical window
+
+env.close()
+```
+
+See `visualization/README.md` for detailed documentation.
 
 ## State Representation
 
