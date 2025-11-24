@@ -48,19 +48,28 @@ class BoardLayout:
 
         Args:
             num_tiles: Total number of tiles (40 or 41)
-            board_size: Size of the board in pixels (square)
+            board_size: Size of the board in pixels (square) - IGNORED, uses fixed dimensions
         """
         if num_tiles not in [40, 41]:
             raise ValueError(f"Unsupported number of tiles: {num_tiles}. Must be 40 or 41.")
 
         self.num_tiles = num_tiles
-        self.board_size = board_size
 
-        # Calculate tile dimensions
-        # Corner tiles are square, edge tiles are rectangular
+        # Fixed tile dimensions for 2:1 aspect ratio that fits on screen
+        # Board will be 1320×1320 pixels (easily visible)
+        self.corner_size = 120  # Corner tiles: 120×120px (square)
+        self.edge_tile_long = 120  # Long dimension: 120px
+        self.edge_tile_short = 60  # Short dimension: 60px (2:1 ratio)
+
+        # For horizontal tiles: width=120, height=60 (2:1 ratio)
+        # For vertical tiles: width=60, height=120 (2:1 ratio)
+        self.edge_tile_width = self.edge_tile_long
+        self.edge_tile_height = self.edge_tile_short
+
+        # Calculate actual board size based on fixed dimensions
         self.tiles_per_side = self._calculate_tiles_per_side()
-        self.corner_size = self._calculate_corner_size()
-        self.edge_tile_width, self.edge_tile_height = self._calculate_edge_tile_size()
+        # Board size = corner + (9 edge tiles × edge_tile_long) + corner
+        self.board_size = self.corner_size + (9 * self.edge_tile_long) + self.corner_size
 
         # Calculate all tile positions
         self.tile_positions = self._calculate_tile_positions()
@@ -84,27 +93,6 @@ class BoardLayout:
                 "right": 9
             }
 
-    def _calculate_corner_size(self) -> int:
-        """Calculate size of corner tiles (square)."""
-        # Corner tiles are about 1.5x the width of edge tiles
-        # We'll use 12% of board size for corners
-        return int(self.board_size * 0.12)
-
-    def _calculate_edge_tile_size(self) -> Tuple[int, int]:
-        """Calculate dimensions of edge tiles."""
-        # Available space after corners
-        available_space = self.board_size - (2 * self.corner_size)
-
-        # Width of tiles on top/bottom edges
-        # Subtract 2 for corners, divide by remaining tiles
-        bottom_tiles = self.tiles_per_side["bottom"] - 2
-        edge_width = available_space // bottom_tiles if bottom_tiles > 0 else 0
-
-        # Height of tiles on left/right edges
-        left_tiles = self.tiles_per_side["left"]
-        edge_height = available_space // left_tiles if left_tiles > 0 else 0
-
-        return edge_width, edge_height
 
     def _calculate_tile_positions(self) -> Dict[int, TilePosition]:
         """Calculate positions for all tiles."""
@@ -128,25 +116,27 @@ class BoardLayout:
         current_tile = 1
 
         # Bottom edge tiles (moving left)
-        x = self.board_size - self.corner_size - self.edge_tile_width
+        # Horizontal tiles: wide rectangles (1024px wide × 256px tall)
+        x = self.board_size - self.corner_size - self.edge_tile_long
+        y_bottom_edge = self.board_size - self.edge_tile_short
         for i in range(self.tiles_per_side["bottom"] - 2):
             positions[current_tile] = TilePosition(
                 tile_id=current_tile,
                 x=x,
-                y=y,
-                width=self.edge_tile_width,
-                height=self.corner_size,
+                y=y_bottom_edge,
+                width=self.edge_tile_long,  # 1024px
+                height=self.edge_tile_short,  # 256px
                 side="bottom",
                 is_corner=False
             )
             current_tile += 1
-            x -= self.edge_tile_width
+            x -= self.edge_tile_long
 
         # Tile 10 (or bottom-left corner): Jail
         positions[current_tile] = TilePosition(
             tile_id=current_tile,
             x=0,
-            y=y,
+            y=self.board_size - self.corner_size,
             width=self.corner_size,
             height=self.corner_size,
             side="bottom",
@@ -155,20 +145,21 @@ class BoardLayout:
         current_tile += 1
 
         # Left edge tiles (moving up)
-        x = 0
-        y = self.board_size - self.corner_size - self.edge_tile_height
+        # Vertical tiles: tall rectangles (256px wide × 1024px tall)
+        x_left_edge = 0
+        y = self.board_size - self.corner_size - self.edge_tile_long
         for i in range(self.tiles_per_side["left"]):
             positions[current_tile] = TilePosition(
                 tile_id=current_tile,
-                x=x,
+                x=x_left_edge,
                 y=y,
-                width=self.corner_size,
-                height=self.edge_tile_height,
+                width=self.edge_tile_short,  # 256px
+                height=self.edge_tile_long,  # 1024px
                 side="left",
                 is_corner=False
             )
             current_tile += 1
-            y -= self.edge_tile_height
+            y -= self.edge_tile_long
 
         # Top-left corner: Free Parking
         positions[current_tile] = TilePosition(
@@ -183,20 +174,21 @@ class BoardLayout:
         current_tile += 1
 
         # Top edge tiles (moving right)
+        # Horizontal tiles: wide rectangles (1024px wide × 256px tall)
         x = self.corner_size
-        y = 0
+        y_top_edge = 0
         for i in range(self.tiles_per_side["top"] - 2):
             positions[current_tile] = TilePosition(
                 tile_id=current_tile,
                 x=x,
-                y=y,
-                width=self.edge_tile_width,
-                height=self.corner_size,
+                y=y_top_edge,
+                width=self.edge_tile_long,  # 1024px
+                height=self.edge_tile_short,  # 256px
                 side="top",
                 is_corner=False
             )
             current_tile += 1
-            x += self.edge_tile_width
+            x += self.edge_tile_long
 
         # Top-right corner: Go To Jail
         positions[current_tile] = TilePosition(
@@ -211,20 +203,21 @@ class BoardLayout:
         current_tile += 1
 
         # Right edge tiles (moving down)
-        x = self.board_size - self.corner_size
+        # Vertical tiles: tall rectangles (256px wide × 1024px tall)
+        x_right_edge = self.board_size - self.edge_tile_short
         y = self.corner_size
         for i in range(self.tiles_per_side["right"]):
             positions[current_tile] = TilePosition(
                 tile_id=current_tile,
-                x=x,
+                x=x_right_edge,
                 y=y,
-                width=self.corner_size,
-                height=self.edge_tile_height,
+                width=self.edge_tile_short,  # 256px
+                height=self.edge_tile_long,  # 1024px
                 side="right",
                 is_corner=False
             )
             current_tile += 1
-            y += self.edge_tile_height
+            y += self.edge_tile_long
 
         return positions
 

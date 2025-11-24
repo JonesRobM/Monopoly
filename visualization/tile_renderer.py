@@ -2,7 +2,7 @@
 Tile rendering for Monopoly board visualization.
 
 Handles rendering of individual tiles including properties, special tiles,
-railroads, and utilities.
+railroads, and utilities with a cartoony, poppy visual style.
 """
 
 from typing import Optional, Tuple
@@ -14,28 +14,86 @@ from visualization.colors import (
     CHANCE_COLOR, COMMUNITY_CHEST_COLOR, TAX_COLOR, MORTGAGE_OVERLAY
 )
 from visualization.board_layout import TilePosition
+from visualization.text_utils import format_display_name, truncate_name, wrap_text
 
 
 class TileRenderer:
     """
-    Renders individual Monopoly tiles.
+    Renders individual Monopoly tiles with a modern, cartoony style.
 
-    Handles different tile types with appropriate colors, labels,
-    and visual styling.
+    Features:
+    - Rounded corners for a softer look
+    - Drop shadows for depth
+    - Gradient backgrounds on special tiles
+    - Larger, bolder fonts
+    - Icon-like symbols for special tiles
     """
 
-    def __init__(self, font_size: int = 10, corner_font_size: int = 14):
+    # Border radius for rounded corners (sized for 120×60 tiles)
+    BORDER_RADIUS = 8
+    CORNER_BORDER_RADIUS = 12
+
+    # Shadow offset for depth effect
+    SHADOW_OFFSET = 3
+
+    def __init__(self, font_size: int = 12, corner_font_size: int = 18):
         """
-        Initialize tile renderer.
+        Initialize tile renderer with cartoonish fonts.
 
         Args:
             font_size: Font size for regular tiles
             corner_font_size: Font size for corner tiles
         """
         pygame.font.init()
-        self.font = pygame.font.SysFont("Arial", font_size, bold=True)
-        self.small_font = pygame.font.SysFont("Arial", font_size - 2)
-        self.corner_font = pygame.font.SysFont("Arial", corner_font_size, bold=True)
+        # Use Comic Sans MS for cartoonish, poppy look
+        self.font = pygame.font.SysFont("Comic Sans MS", font_size, bold=True)
+        self.small_font = pygame.font.SysFont("Comic Sans MS", font_size - 2, bold=False)
+        self.corner_font = pygame.font.SysFont("Comic Sans MS", corner_font_size, bold=True)
+        self.icon_font = pygame.font.SysFont("Comic Sans MS", font_size + 4, bold=True)
+
+    def _draw_shadow(
+        self,
+        surface: pygame.Surface,
+        rect: pygame.Rect,
+        border_radius: int
+    ) -> None:
+        """Draw a subtle drop shadow for depth."""
+        shadow_rect = rect.copy()
+        shadow_rect.x += self.SHADOW_OFFSET
+        shadow_rect.y += self.SHADOW_OFFSET
+
+        # Create semi-transparent shadow surface
+        shadow_surface = pygame.Surface((shadow_rect.width, shadow_rect.height), pygame.SRCALPHA)
+        pygame.draw.rect(
+            shadow_surface,
+            (0, 0, 0, 40),  # Semi-transparent black
+            shadow_surface.get_rect(),
+            border_radius=border_radius
+        )
+        surface.blit(shadow_surface, (shadow_rect.x, shadow_rect.y))
+
+    def _draw_rounded_rect(
+        self,
+        surface: pygame.Surface,
+        color: Tuple[int, int, int],
+        rect: pygame.Rect,
+        border_radius: int,
+        border_color: Optional[Tuple[int, int, int]] = None,
+        border_width: int = 2
+    ) -> None:
+        """Draw a rounded rectangle with optional border."""
+        # Fill
+        pygame.draw.rect(surface, color, rect, border_radius=border_radius)
+
+        # Border
+        if border_color:
+            pygame.draw.rect(
+                surface,
+                border_color,
+                rect,
+                width=border_width,
+                border_radius=border_radius
+            )
 
     def render_tile(
         self,
@@ -86,63 +144,120 @@ class TileRenderer:
             self._draw_mortgage_overlay(surface, rect)
 
     def _render_go(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
-        """Render GO corner tile."""
-        pygame.draw.rect(surface, GO_COLOR, rect)
-        pygame.draw.rect(surface, TILE_BORDER, rect, 2)
+        """Render GO corner tile with vibrant styling."""
+        # Draw shadow
+        self._draw_shadow(surface, rect, self.CORNER_BORDER_RADIUS)
 
-        # Draw arrow and text
+        # Draw rounded background
+        self._draw_rounded_rect(
+            surface, GO_COLOR, rect,
+            self.CORNER_BORDER_RADIUS,
+            TILE_BORDER, 3
+        )
+
+        # Draw arrow icon
+        arrow_text = self.corner_font.render("→", True, TEXT_COLOR)
+        arrow_rect = arrow_text.get_rect(center=(rect.centerx, rect.centery - 15))
+        surface.blit(arrow_text, arrow_rect)
+
+        # Draw GO text
         text = self.corner_font.render("GO", True, TEXT_COLOR)
-        text_rect = text.get_rect(center=rect.center)
+        text_rect = text.get_rect(center=(rect.centerx, rect.centery + 10))
         surface.blit(text, text_rect)
 
         # Draw "Collect $200"
-        subtext = self.small_font.render("Collect", True, TEXT_COLOR)
-        subtext_rect = subtext.get_rect(center=(rect.centerx, rect.centery + 20))
+        subtext = self.small_font.render("Collect £200", True, TEXT_COLOR)
+        subtext_rect = subtext.get_rect(center=(rect.centerx, rect.centery + 28))
         surface.blit(subtext, subtext_rect)
 
     def _render_jail(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
-        """Render JAIL corner tile."""
-        pygame.draw.rect(surface, JAIL_COLOR, rect)
-        pygame.draw.rect(surface, TILE_BORDER, rect, 2)
+        """Render JAIL corner tile - note: this is actually just visiting in standard Monopoly."""
+        # Draw shadow
+        self._draw_shadow(surface, rect, self.CORNER_BORDER_RADIUS)
 
-        # Draw bars pattern
+        # Draw rounded background
+        self._draw_rounded_rect(
+            surface, JAIL_COLOR, rect,
+            self.CORNER_BORDER_RADIUS,
+            TILE_BORDER, 3
+        )
+
+        # Draw simple bars in center
+        bar_spacing = 8
         bar_width = 3
-        for i in range(0, rect.width, 10):
+        num_bars = 5
+        start_x = rect.centerx - (num_bars * bar_spacing) // 2
+
+        for i in range(num_bars):
+            x = start_x + i * bar_spacing
             pygame.draw.line(
                 surface, TILE_BORDER,
-                (rect.x + i, rect.y),
-                (rect.x + i, rect.y + rect.height),
+                (x, rect.centery - 15),
+                (x, rect.centery + 15),
                 bar_width
             )
 
-        text = self.corner_font.render("JAIL", True, TEXT_COLOR)
-        text_rect = text.get_rect(center=rect.center)
+        # Draw "JAIL" text
+        text = self.small_font.render("Just", True, TEXT_COLOR)
+        text_rect = text.get_rect(center=(rect.centerx, rect.centery - 25))
         surface.blit(text, text_rect)
+
+        text2 = self.corner_font.render("VISITING", True, TEXT_COLOR)
+        text2_rect = text2.get_rect(center=(rect.centerx, rect.centery + 25))
+        surface.blit(text2, text2_rect)
 
     def _render_free_parking(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
         """Render FREE PARKING corner tile."""
-        pygame.draw.rect(surface, FREE_PARKING_COLOR, rect)
-        pygame.draw.rect(surface, TILE_BORDER, rect, 2)
+        # Draw shadow
+        self._draw_shadow(surface, rect, self.CORNER_BORDER_RADIUS)
 
-        text = self.corner_font.render("FREE", True, TEXT_COLOR)
-        text_rect = text.get_rect(center=(rect.centerx, rect.centery - 10))
+        # Draw rounded background
+        self._draw_rounded_rect(
+            surface, FREE_PARKING_COLOR, rect,
+            self.CORNER_BORDER_RADIUS,
+            TILE_BORDER, 3
+        )
+
+        # Draw parking "P" icon
+        icon = self.corner_font.render("P", True, TEXT_COLOR)
+        icon_rect = icon.get_rect(center=(rect.centerx, rect.centery - 12))
+        surface.blit(icon, icon_rect)
+
+        # Draw FREE text
+        text = self.small_font.render("FREE", True, TEXT_COLOR)
+        text_rect = text.get_rect(center=(rect.centerx, rect.centery + 8))
         surface.blit(text, text_rect)
 
-        subtext = self.corner_font.render("PARKING", True, TEXT_COLOR)
-        subtext_rect = subtext.get_rect(center=(rect.centerx, rect.centery + 10))
+        # Draw PARKING text
+        subtext = self.small_font.render("PARKING", True, TEXT_COLOR)
+        subtext_rect = subtext.get_rect(center=(rect.centerx, rect.centery + 22))
         surface.blit(subtext, subtext_rect)
 
     def _render_goto_jail(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
         """Render GO TO JAIL corner tile."""
-        pygame.draw.rect(surface, GO_TO_JAIL_COLOR, rect)
-        pygame.draw.rect(surface, TILE_BORDER, rect, 2)
+        # Draw shadow
+        self._draw_shadow(surface, rect, self.CORNER_BORDER_RADIUS)
 
-        text = self.corner_font.render("GO TO", True, TEXT_COLOR)
-        text_rect = text.get_rect(center=(rect.centerx, rect.centery - 10))
+        # Draw rounded background
+        self._draw_rounded_rect(
+            surface, GO_TO_JAIL_COLOR, rect,
+            self.CORNER_BORDER_RADIUS,
+            TILE_BORDER, 3
+        )
+
+        # Draw warning icon
+        icon = self.corner_font.render("!", True, TEXT_COLOR)
+        icon_rect = icon.get_rect(center=(rect.centerx, rect.centery - 15))
+        surface.blit(icon, icon_rect)
+
+        # Draw GO TO text
+        text = self.small_font.render("GO TO", True, TEXT_COLOR)
+        text_rect = text.get_rect(center=(rect.centerx, rect.centery + 5))
         surface.blit(text, text_rect)
 
+        # Draw JAIL text
         subtext = self.corner_font.render("JAIL", True, TEXT_COLOR)
-        subtext_rect = subtext.get_rect(center=(rect.centerx, rect.centery + 10))
+        subtext_rect = subtext.get_rect(center=(rect.centerx, rect.centery + 20))
         surface.blit(subtext, subtext_rect)
 
     def _render_property(
@@ -153,42 +268,74 @@ class TileRenderer:
         side: str,
         is_mortgaged: bool
     ) -> None:
-        """Render a property tile."""
-        # Background
-        pygame.draw.rect(surface, TILE_BACKGROUND, rect)
-        pygame.draw.rect(surface, TILE_BORDER, rect, 2)
+        """Render a property tile with modern styling."""
+        # Draw shadow
+        self._draw_shadow(surface, rect, self.BORDER_RADIUS)
+
+        # Draw rounded background
+        self._draw_rounded_rect(
+            surface, TILE_BACKGROUND, rect,
+            self.BORDER_RADIUS,
+            TILE_BORDER, 2
+        )
 
         if tile_info.property_info:
-            # Color bar
+            # Color bar - prominent and visible
             color = get_property_color(tile_info.property_info.group)
             color_bar_height = 20
 
             if side == "bottom":
-                color_rect = pygame.Rect(rect.x, rect.y, rect.width, color_bar_height)
+                color_rect = pygame.Rect(rect.x + 2, rect.y + 2, rect.width - 4, color_bar_height)
+                # Round only top corners
+                pygame.draw.rect(surface, color, color_rect, border_top_left_radius=6, border_top_right_radius=6)
             elif side == "top":
-                color_rect = pygame.Rect(rect.x, rect.y + rect.height - color_bar_height,
-                                        rect.width, color_bar_height)
+                color_rect = pygame.Rect(rect.x + 2, rect.y + 2, rect.width - 4, color_bar_height)
+                # Round only top corners
+                pygame.draw.rect(surface, color, color_rect, border_top_left_radius=6, border_top_right_radius=6)
             elif side == "left":
-                color_rect = pygame.Rect(rect.x + rect.width - color_bar_height, rect.y,
-                                        color_bar_height, rect.height)
+                color_rect = pygame.Rect(rect.x + 2, rect.y + 2, color_bar_height, rect.height - 4)
+                # Round only left corners
+                pygame.draw.rect(surface, color, color_rect, border_top_left_radius=6, border_bottom_left_radius=6)
             else:  # right
-                color_rect = pygame.Rect(rect.x, rect.y, color_bar_height, rect.height)
+                color_rect = pygame.Rect(rect.x + rect.width - color_bar_height - 2, rect.y + 2,
+                                        color_bar_height, rect.height - 4)
+                # Round only right corners
+                pygame.draw.rect(surface, color, color_rect, border_top_right_radius=6, border_bottom_right_radius=6)
 
-            pygame.draw.rect(surface, color, color_rect)
+            # Property name with text wrapping
+            # Calculate available width for text (leave padding)
+            if side in ["bottom", "top"]:
+                max_text_width = rect.width - 8
+            else:
+                max_text_width = rect.height - 8
 
-            # Property name (shortened if too long)
-            name = tile_info.name
-            if len(name) > 15:
-                name = name[:12] + "..."
+            # Wrap text to fit
+            lines = wrap_text(tile_info.name, max_text_width, self.font)
 
-            text = self.font.render(name, True, TEXT_COLOR)
+            # Limit to 2 lines maximum
+            if len(lines) > 2:
+                lines = lines[:2]
+                # Add ellipsis to last line if truncated
+                if len(lines[-1]) > 10:
+                    lines[-1] = lines[-1][:10] + "..."
 
-            # Rotate text for vertical sides
-            if side in ["left", "right"]:
-                text = pygame.transform.rotate(text, 90 if side == "left" else -90)
+            # Render text lines
+            line_height = self.font.get_height()
+            total_height = len(lines) * line_height
+            start_y = rect.centery - total_height // 2
 
-            text_rect = text.get_rect(center=rect.center)
-            surface.blit(text, text_rect)
+            for i, line in enumerate(lines):
+                text = self.font.render(line, True, TEXT_COLOR)
+
+                # Rotate text based on side
+                if side == "top":
+                    text = pygame.transform.rotate(text, 180)
+                elif side in ["left", "right"]:
+                    text = pygame.transform.rotate(text, 90 if side == "left" else -90)
+
+                y_pos = start_y + i * line_height
+                text_rect = text.get_rect(center=(rect.centerx, y_pos))
+                surface.blit(text, text_rect)
 
     def _render_railroad(
         self,
@@ -198,26 +345,63 @@ class TileRenderer:
         side: str,
         is_mortgaged: bool
     ) -> None:
-        """Render a railroad tile."""
-        pygame.draw.rect(surface, TILE_BACKGROUND, rect)
-        pygame.draw.rect(surface, TILE_BORDER, rect, 2)
+        """Render a railroad tile with modern styling."""
+        # Draw shadow
+        self._draw_shadow(surface, rect, self.BORDER_RADIUS)
 
-        # Draw railroad icon (simple tracks)
-        center_x, center_y = rect.center
+        # Draw rounded background
+        self._draw_rounded_rect(
+            surface, TILE_BACKGROUND, rect,
+            self.BORDER_RADIUS,
+            TILE_BORDER, 2
+        )
 
-        # Property name
-        name = tile_info.name
-        if len(name) > 15:
-            name = name[:12] + "..."
+        # Draw railroad icon
+        icon = self.icon_font.render("🚉", True, TEXT_COLOR)
 
-        text = self.font.render(name, True, TEXT_COLOR)
+        # Calculate available width for text
+        if side in ["bottom", "top"]:
+            max_text_width = rect.width - 8
+        else:
+            max_text_width = rect.height - 8
 
-        # Rotate text for vertical sides
-        if side in ["left", "right"]:
-            text = pygame.transform.rotate(text, 90 if side == "left" else -90)
+        # Wrap property name
+        lines = wrap_text(tile_info.name, max_text_width, self.small_font)
 
-        text_rect = text.get_rect(center=rect.center)
-        surface.blit(text, text_rect)
+        # Limit to 2 lines
+        if len(lines) > 2:
+            lines = lines[:2]
+
+        # Rotate icon based on side
+        if side == "top":
+            icon = pygame.transform.rotate(icon, 180)
+        elif side in ["left", "right"]:
+            icon = pygame.transform.rotate(icon, 90 if side == "left" else -90)
+
+        # Position icon and text
+        if side in ["bottom", "top"]:
+            icon_rect = icon.get_rect(center=(rect.centerx, rect.centery - 16))
+            surface.blit(icon, icon_rect)
+
+            # Render text lines below icon
+            line_height = self.small_font.get_height()
+            total_height = len(lines) * line_height
+            start_y = rect.centery + 8
+
+            for i, line in enumerate(lines):
+                text = self.small_font.render(line, True, TEXT_COLOR)
+
+                # Rotate text for top side
+                if side == "top":
+                    text = pygame.transform.rotate(text, 180)
+
+                y_pos = start_y + i * line_height
+                text_rect = text.get_rect(center=(rect.centerx, y_pos))
+                surface.blit(text, text_rect)
+        else:
+            # For vertical sides, render icon in center
+            icon_rect = icon.get_rect(center=rect.center)
+            surface.blit(icon, icon_rect)
 
     def _render_utility(
         self,
@@ -227,36 +411,97 @@ class TileRenderer:
         side: str,
         is_mortgaged: bool
     ) -> None:
-        """Render a utility tile."""
-        pygame.draw.rect(surface, TILE_BACKGROUND, rect)
-        pygame.draw.rect(surface, TILE_BORDER, rect, 2)
+        """Render a utility tile with modern styling."""
+        # Draw shadow
+        self._draw_shadow(surface, rect, self.BORDER_RADIUS)
 
-        # Property name
-        name = tile_info.name
-        if len(name) > 15:
-            name = name[:12] + "..."
+        # Draw rounded background
+        self._draw_rounded_rect(
+            surface, TILE_BACKGROUND, rect,
+            self.BORDER_RADIUS,
+            TILE_BORDER, 2
+        )
 
-        text = self.font.render(name, True, TEXT_COLOR)
+        # Draw utility icon (lightbulb for electric, droplet for water)
+        if "electric" in tile_info.name.lower():
+            icon = self.icon_font.render("💡", True, TEXT_COLOR)
+        elif "water" in tile_info.name.lower():
+            icon = self.icon_font.render("💧", True, TEXT_COLOR)
+        else:
+            icon = self.icon_font.render("⚡", True, TEXT_COLOR)
 
-        # Rotate text for vertical sides
-        if side in ["left", "right"]:
-            text = pygame.transform.rotate(text, 90 if side == "left" else -90)
+        # Calculate available width for text
+        if side in ["bottom", "top"]:
+            max_text_width = rect.width - 8
+        else:
+            max_text_width = rect.height - 8
 
-        text_rect = text.get_rect(center=rect.center)
-        surface.blit(text, text_rect)
+        # Wrap property name
+        lines = wrap_text(tile_info.name, max_text_width, self.small_font)
+
+        # Limit to 2 lines
+        if len(lines) > 2:
+            lines = lines[:2]
+
+        # Rotate icon based on side
+        if side == "top":
+            icon = pygame.transform.rotate(icon, 180)
+        elif side in ["left", "right"]:
+            icon = pygame.transform.rotate(icon, 90 if side == "left" else -90)
+
+        # Position icon and text
+        if side in ["bottom", "top"]:
+            icon_rect = icon.get_rect(center=(rect.centerx, rect.centery - 16))
+            surface.blit(icon, icon_rect)
+
+            # Render text lines below icon
+            line_height = self.small_font.get_height()
+            total_height = len(lines) * line_height
+            start_y = rect.centery + 8
+
+            for i, line in enumerate(lines):
+                text = self.small_font.render(line, True, TEXT_COLOR)
+
+                # Rotate text for top side
+                if side == "top":
+                    text = pygame.transform.rotate(text, 180)
+
+                y_pos = start_y + i * line_height
+                text_rect = text.get_rect(center=(rect.centerx, y_pos))
+                surface.blit(text, text_rect)
+        else:
+            # For vertical sides, render icon in center
+            icon_rect = icon.get_rect(center=rect.center)
+            surface.blit(icon, icon_rect)
 
     def _render_chance(self, surface: pygame.Surface, rect: pygame.Rect, side: str) -> None:
-        """Render a Chance tile."""
-        pygame.draw.rect(surface, CHANCE_COLOR, rect)
-        pygame.draw.rect(surface, TILE_BORDER, rect, 2)
+        """Render a Chance tile with modern styling."""
+        # Draw shadow
+        self._draw_shadow(surface, rect, self.BORDER_RADIUS)
 
-        text = self.font.render("?", True, TEXT_COLOR)
+        # Draw rounded background
+        self._draw_rounded_rect(
+            surface, CHANCE_COLOR, rect,
+            self.BORDER_RADIUS,
+            TILE_BORDER, 2
+        )
 
-        # Rotate text for vertical sides
-        if side in ["left", "right"]:
+        # Draw question mark icon
+        icon = self.icon_font.render("?", True, TEXT_COLOR)
+        text = self.small_font.render("CHANCE", True, TEXT_COLOR)
+
+        # Rotate based on side
+        if side == "top":
+            icon = pygame.transform.rotate(icon, 180)
+            text = pygame.transform.rotate(text, 180)
+        elif side in ["left", "right"]:
+            icon = pygame.transform.rotate(icon, 90 if side == "left" else -90)
             text = pygame.transform.rotate(text, 90 if side == "left" else -90)
 
-        text_rect = text.get_rect(center=rect.center)
+        icon_rect = icon.get_rect(center=(rect.centerx, rect.centery - 8))
+        text_rect = text.get_rect(center=(rect.centerx, rect.centery + 10))
+
+        surface.blit(icon, icon_rect)
         surface.blit(text, text_rect)
 
     def _render_community_chest(
@@ -265,17 +510,30 @@ class TileRenderer:
         rect: pygame.Rect,
         side: str
     ) -> None:
-        """Render a Community Chest tile."""
-        pygame.draw.rect(surface, COMMUNITY_CHEST_COLOR, rect)
-        pygame.draw.rect(surface, TILE_BORDER, rect, 2)
+        """Render a Community Chest tile with modern styling."""
+        # Draw shadow
+        self._draw_shadow(surface, rect, self.BORDER_RADIUS)
 
-        text = self.font.render("CC", True, TEXT_COLOR)
+        # Draw rounded background
+        self._draw_rounded_rect(
+            surface, COMMUNITY_CHEST_COLOR, rect,
+            self.BORDER_RADIUS,
+            TILE_BORDER, 2
+        )
 
-        # Rotate text for vertical sides
+        # Draw chest icon
+        icon = self.icon_font.render("📦", True, TEXT_COLOR)
+        text = self.small_font.render("COMM.", True, TEXT_COLOR)
+
+        # Rotate for vertical sides
         if side in ["left", "right"]:
+            icon = pygame.transform.rotate(icon, 90 if side == "left" else -90)
             text = pygame.transform.rotate(text, 90 if side == "left" else -90)
 
-        text_rect = text.get_rect(center=rect.center)
+        icon_rect = icon.get_rect(center=(rect.centerx, rect.centery - 8))
+        text_rect = text.get_rect(center=(rect.centerx, rect.centery + 10))
+
+        surface.blit(icon, icon_rect)
         surface.blit(text, text_rect)
 
     def _render_tax(
@@ -285,39 +543,76 @@ class TileRenderer:
         tile_info: TileInfo,
         side: str
     ) -> None:
-        """Render a tax tile."""
-        pygame.draw.rect(surface, TAX_COLOR, rect)
-        pygame.draw.rect(surface, TILE_BORDER, rect, 2)
+        """Render a tax tile with modern styling."""
+        # Draw shadow
+        self._draw_shadow(surface, rect, self.BORDER_RADIUS)
 
-        # Tax name and amount
-        name = "TAX"
+        # Draw rounded background
+        self._draw_rounded_rect(
+            surface, TAX_COLOR, rect,
+            self.BORDER_RADIUS,
+            TILE_BORDER, 2
+        )
+
+        # Tax icon and amount
+        icon = self.icon_font.render("£", True, TEXT_COLOR)
+
+        # Calculate available width for text
+        if side in ["bottom", "top"]:
+            max_text_width = rect.width - 8
+        else:
+            max_text_width = rect.height - 8
+
+        # Format tax name
+        tax_name = format_display_name(tile_info.name)
+
+        # Wrap tax name if needed
+        lines = wrap_text(tax_name, max_text_width, self.small_font)
+        if len(lines) > 1:
+            # If it wraps, just use "TAX"
+            tax_name = "TAX"
+
+        text = self.small_font.render(tax_name, True, TEXT_COLOR)
+
         if tile_info.tax_amount:
-            amount_text = f"${tile_info.tax_amount}"
+            amount_text = f"£{tile_info.tax_amount}"
         else:
             amount_text = ""
 
-        text = self.font.render(name, True, TEXT_COLOR)
         amount = self.small_font.render(amount_text, True, TEXT_COLOR)
 
-        # Rotate text for vertical sides
+        # Rotate for vertical sides
         if side in ["left", "right"]:
+            icon = pygame.transform.rotate(icon, 90 if side == "left" else -90)
             text = pygame.transform.rotate(text, 90 if side == "left" else -90)
             amount = pygame.transform.rotate(amount, 90 if side == "left" else -90)
 
-        text_rect = text.get_rect(center=(rect.centerx, rect.centery - 8))
-        amount_rect = amount.get_rect(center=(rect.centerx, rect.centery + 8))
+        icon_rect = icon.get_rect(center=(rect.centerx, rect.centery - 12))
+        text_rect = text.get_rect(center=(rect.centerx, rect.centery + 4))
+        amount_rect = amount.get_rect(center=(rect.centerx, rect.centery + 16))
 
+        surface.blit(icon, icon_rect)
         surface.blit(text, text_rect)
         surface.blit(amount, amount_rect)
 
     def _draw_mortgage_overlay(self, surface: pygame.Surface, rect: pygame.Rect) -> None:
         """Draw semi-transparent overlay for mortgaged properties."""
-        overlay = pygame.Surface((rect.width, rect.height))
-        overlay.set_alpha(128)
-        overlay.fill(MORTGAGE_OVERLAY)
+        # Create rounded overlay
+        overlay = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+        pygame.draw.rect(
+            overlay,
+            (*MORTGAGE_OVERLAY, 160),  # Semi-transparent
+            overlay.get_rect(),
+            border_radius=self.BORDER_RADIUS
+        )
         surface.blit(overlay, (rect.x, rect.y))
 
-        # Draw "MORTGAGED" text
-        text = self.small_font.render("M", True, (255, 255, 255))
+        # Draw "MORTGAGED" text with background
+        text = self.small_font.render("MORTGAGED", True, (255, 255, 255))
         text_rect = text.get_rect(center=rect.center)
+
+        # Draw text background
+        bg_rect = text_rect.inflate(8, 4)
+        pygame.draw.rect(surface, (180, 0, 0), bg_rect, border_radius=3)
+
         surface.blit(text, text_rect)

@@ -6,7 +6,7 @@ using pygame. Designed to work with both headless training and
 interactive visualization modes.
 """
 
-from renderer import MonopolyRenderer
+from visualization.renderer import MonopolyRenderer
 from visualization.board_layout import BoardLayout
 
 __all__ = ["MonopolyRenderer", "BoardLayout"]

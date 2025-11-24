@@ -14,7 +14,7 @@ from visualization.tile_renderer import TileRenderer
 from visualization.player_renderer import PlayerRenderer, BuildingRenderer, OwnershipIndicator
 from visualization.animation import AnimationManager
 from visualization.info_panel import InfoPanel, CenterPanel, MessageDisplay
-from colors import BOARD_BACKGROUND
+from visualization.colors import BOARD_BACKGROUND
 
 
 class MonopolyRenderer:
@@ -96,8 +96,8 @@ class MonopolyRenderer:
             info_panel_height
         )
 
-        # Create center panel
-        self.center_panel = CenterPanel()
+        # Create center panel with board reference
+        self.center_panel = CenterPanel(board=board)
 
         # Create message display
         self.message_display = MessageDisplay()
@@ -141,10 +141,10 @@ class MonopolyRenderer:
         # Render ownership indicators
         self._render_ownership(game_state)
 
-        # Render center panel
+        # Render center panel with game state
         board_name = self.board.metadata.name if self.board.metadata else "MONOPOLY"
         center_rect = self.layout.get_center_area()
-        self.center_panel.render(self.board_surface, center_rect, board_name)
+        self.center_panel.render(self.board_surface, center_rect, board_name, game_state)
 
         # Render player pieces
         self._render_players(game_state)

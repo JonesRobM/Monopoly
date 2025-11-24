@@ -38,11 +38,11 @@ class Animation:
 @dataclass
 class PlayerMoveAnimation(Animation):
     """Animation for player piece movement."""
-    player_id: int
-    from_position: int
-    to_position: int
-    from_coords: Tuple[int, int]
-    to_coords: Tuple[int, int]
+    player_id: int = 0
+    from_position: int = 0
+    to_position: int = 0
+    from_coords: Tuple[int, int] = (0, 0)
+    to_coords: Tuple[int, int] = (0, 0)
 
     def get_current_position(self, progress: float) -> Tuple[int, int]:
         """

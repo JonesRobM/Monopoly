@@ -1,9 +1,9 @@
 {
   "name": "Stoke-on-Trent",
-  "description": "Custom Stoke-on-Trent themed Monopoly board with 41 tiles",
+  "description": "Custom Stoke-on-Trent themed Monopoly board with 40 tiles",
   "currency_symbol": "£",
   "go_salary": 200,
-  "num_tiles": 41,
+  "num_tiles": 40,
   "tiles": [
     {
       "id": 0,
@@ -13,8 +13,8 @@
     {
       "id": 1,
       "type": "property",
-      "name": "The Potteries Museum & Art Gallery",
       "colour": "brown",
+      "name": "The Potteries Museum & Art Gallery",
       "purchase_price": 60,
       "base_rent": 2,
       "rent_1_house": 10,
@@ -28,8 +28,8 @@
     {
       "id": 2,
       "type": "property",
-      "name": "Stoke Minster",
       "colour": "brown",
+      "name": "Stoke Minster",
       "purchase_price": 60,
       "base_rent": 4,
       "rent_1_house": 20,
@@ -47,7 +47,7 @@
     },
     {
       "id": 4,
-      "type": "station",
+      "type": "railroad",
       "name": "Hanley Bus Station",
       "purchase_price": 200,
       "mortgage_value": 100
@@ -55,8 +55,8 @@
     {
       "id": 5,
       "type": "property",
-      "name": "Etruria Industrial Museum",
       "colour": "light_blue",
+      "name": "Etruria Industrial Museum",
       "purchase_price": 100,
       "base_rent": 6,
       "rent_1_house": 30,
@@ -70,8 +70,8 @@
     {
       "id": 6,
       "type": "property",
-      "name": "Hanley Park",
       "colour": "light_blue",
+      "name": "Hanley Park",
       "purchase_price": 100,
       "base_rent": 6,
       "rent_1_house": 30,
@@ -85,8 +85,8 @@
     {
       "id": 7,
       "type": "property",
-      "name": "Central Forest Park",
       "colour": "light_blue",
+      "name": "Central Forest Park",
       "purchase_price": 120,
       "base_rent": 8,
       "rent_1_house": 40,
@@ -106,8 +106,8 @@
     {
       "id": 9,
       "type": "property",
-      "name": "Gladstone Pottery Museum",
       "colour": "purple",
+      "name": "Gladstone Pottery Museum",
       "purchase_price": 140,
       "base_rent": 10,
       "rent_1_house": 50,
@@ -121,8 +121,8 @@
     {
       "id": 10,
       "type": "property",
-      "name": "Longton Park",
       "colour": "purple",
+      "name": "Longton Park",
       "purchase_price": 140,
       "base_rent": 10,
       "rent_1_house": 50,
@@ -140,7 +140,7 @@
     },
     {
       "id": 12,
-      "type": "station",
+      "type": "railroad",
       "name": "Signal 1 HQ",
       "purchase_price": 200,
       "mortgage_value": 100
@@ -148,8 +148,8 @@
     {
       "id": 13,
       "type": "property",
-      "name": "Burslem School of Art",
       "colour": "orange",
+      "name": "Burslem School of Art",
       "purchase_price": 180,
       "base_rent": 14,
       "rent_1_house": 70,
@@ -163,8 +163,8 @@
     {
       "id": 14,
       "type": "property",
-      "name": "Middleport Pottery",
       "colour": "orange",
+      "name": "Middleport Pottery",
       "purchase_price": 180,
       "base_rent": 14,
       "rent_1_house": 70,
@@ -178,8 +178,8 @@
     {
       "id": 15,
       "type": "property",
-      "name": "Port Vale FC",
       "colour": "orange",
+      "name": "Port Vale FC",
       "purchase_price": 200,
       "base_rent": 16,
       "rent_1_house": 80,
@@ -200,8 +200,8 @@
     {
       "id": 17,
       "type": "property",
-      "name": "Trentham Gardens",
       "colour": "red",
+      "name": "Trentham Gardens",
       "purchase_price": 220,
       "base_rent": 18,
       "rent_1_house": 90,
@@ -215,8 +215,8 @@
     {
       "id": 18,
       "type": "property",
-      "name": "Trentham Monkey Forest",
       "colour": "red",
+      "name": "Trentham Monkey Forest",
       "purchase_price": 220,
       "base_rent": 18,
       "rent_1_house": 90,
@@ -234,7 +234,7 @@
     },
     {
       "id": 20,
-      "type": "station",
+      "type": "railroad",
       "name": "Stoke-on-Trent Railway Station",
       "purchase_price": 200,
       "mortgage_value": 100
@@ -242,8 +242,8 @@
     {
       "id": 21,
       "type": "property",
-      "name": "Waterworld",
       "colour": "yellow",
+      "name": "Waterworld",
       "purchase_price": 260,
       "base_rent": 22,
       "rent_1_house": 110,
@@ -257,8 +257,8 @@
     {
       "id": 22,
       "type": "property",
-      "name": "Festival Retail Park",
       "colour": "yellow",
+      "name": "Festival Retail Park",
       "purchase_price": 260,
       "base_rent": 22,
       "rent_1_house": 110,
@@ -272,8 +272,8 @@
     {
       "id": 23,
       "type": "property",
-      "name": "The Regent Theatre",
       "colour": "yellow",
+      "name": "The Regent Theatre",
       "purchase_price": 280,
       "base_rent": 24,
       "rent_1_house": 120,
@@ -286,24 +286,14 @@
     },
     {
       "id": 24,
-      "type": "property",
-      "name": "The Potteries Shopping Centre",
-      "colour": "green",
-      "purchase_price": 300,
-      "base_rent": 26,
-      "rent_1_house": 130,
-      "rent_2_houses": 390,
-      "rent_3_houses": 900,
-      "rent_4_houses": 1100,
-      "rent_hotel": 1275,
-      "house_cost": 200,
-      "mortgage_value": 150
+      "type": "free_parking",
+      "name": "Free Parking"
     },
     {
       "id": 25,
       "type": "property",
-      "name": "Bet365 Stadium",
       "colour": "green",
+      "name": "The Potteries Shopping Centre",
       "purchase_price": 300,
       "base_rent": 26,
       "rent_1_house": 130,
@@ -316,14 +306,29 @@
     },
     {
       "id": 26,
+      "type": "property",
+      "colour": "green",
+      "name": "Bet365 Stadium",
+      "purchase_price": 300,
+      "base_rent": 26,
+      "rent_1_house": 130,
+      "rent_2_houses": 390,
+      "rent_3_houses": 900,
+      "rent_4_houses": 1100,
+      "rent_hotel": 1275,
+      "house_cost": 200,
+      "mortgage_value": 150
+    },
+    {
+      "id": 27,
       "type": "community_chest",
       "name": "Community Chest"
     },
     {
-      "id": 27,
+      "id": 28,
       "type": "property",
-      "name": "Staffordshire University",
       "colour": "green",
+      "name": "Staffordshire University",
       "purchase_price": 320,
       "base_rent": 28,
       "rent_1_house": 150,
@@ -335,17 +340,17 @@
       "mortgage_value": 160
     },
     {
-      "id": 28,
+      "id": 29,
       "type": "utility",
       "name": "Water Works",
       "purchase_price": 150,
       "mortgage_value": 75
     },
     {
-      "id": 29,
+      "id": 30,
       "type": "property",
-      "name": "Trentham Estate",
       "colour": "dark_blue",
+      "name": "Trentham Estate",
       "purchase_price": 350,
       "base_rent": 35,
       "rent_1_house": 175,
@@ -357,10 +362,10 @@
       "mortgage_value": 175
     },
     {
-      "id": 30,
+      "id": 31,
       "type": "property",
-      "name": "Wedgwood Visitor Centre",
       "colour": "dark_blue",
+      "name": "Wedgwood Visitor Centre",
       "purchase_price": 400,
       "base_rent": 50,
       "rent_1_house": 200,
@@ -372,22 +377,33 @@
       "mortgage_value": 200
     },
     {
-      "id": 31,
-      "type": "chance",
-      "name": "Chance"
-    },
-    {
       "id": 32,
-      "type": "station",
+      "type": "railroad",
       "name": "Longport Station",
       "purchase_price": 200,
       "mortgage_value": 100
     },
     {
       "id": 33,
+      "type": "chance",
+      "name": "Chance"
+    },
+    {
+      "id": 34,
+      "type": "tax",
+      "name": "Luxury Tax",
+      "amount": 100
+    },
+    {
+      "id": 35,
+      "type": "go_to_jail",
+      "name": "Go To Jail"
+    },
+    {
+      "id": 36,
       "type": "property",
-      "name": "Royal Stoke University Hospital",
       "colour": "special",
+      "name": "Cobridge",
       "purchase_price": 100,
       "base_rent": 6,
       "rent_1_house": 30,
@@ -399,16 +415,10 @@
       "mortgage_value": 50
     },
     {
-      "id": 34,
-      "type": "tax",
-      "name": "Super Tax",
-      "amount": 100
-    },
-    {
-      "id": 35,
+      "id": 37,
       "type": "property",
-      "name": "Keele University",
       "colour": "special",
+      "name": "Tunstall Market",
       "purchase_price": 140,
       "base_rent": 10,
       "rent_1_house": 50,
@@ -420,15 +430,15 @@
       "mortgage_value": 70
     },
     {
-      "id": 36,
-      "type": "go_to_jail",
-      "name": "Go To Jail"
+      "id": 38,
+      "type": "community_chest",
+      "name": "Community Chest"
     },
     {
-      "id": 37,
+      "id": 39,
       "type": "property",
-      "name": "Cobridge",
       "colour": "special",
+      "name": "Hanley City Centre",
       "purchase_price": 180,
       "base_rent": 14,
       "rent_1_house": 70,
@@ -438,41 +448,6 @@
       "rent_hotel": 950,
       "house_cost": 100,
       "mortgage_value": 90
-    },
-    {
-      "id": 38,
-      "type": "property",
-      "name": "Tunstall Market",
-      "colour": "special",
-      "purchase_price": 220,
-      "base_rent": 18,
-      "rent_1_house": 90,
-      "rent_2_houses": 250,
-      "rent_3_houses": 700,
-      "rent_4_houses": 875,
-      "rent_hotel": 1050,
-      "house_cost": 150,
-      "mortgage_value": 110
-    },
-    {
-      "id": 39,
-      "type": "community_chest",
-      "name": "Community Chest"
-    },
-    {
-      "id": 40,
-      "type": "property",
-      "name": "Hanley City Centre",
-      "colour": "special",
-      "purchase_price": 300,
-      "base_rent": 26,
-      "rent_1_house": 130,
-      "rent_2_houses": 390,
-      "rent_3_houses": 900,
-      "rent_4_houses": 1100,
-      "rent_hotel": 1275,
-      "house_cost": 200,
-      "mortgage_value": 150
     }
   ],
   "property_groups": {
@@ -482,16 +457,16 @@
     "orange": [13, 14, 15],
     "red": [17, 18],
     "yellow": [21, 22, 23],
-    "green": [24, 25, 27],
-    "dark_blue": [29, 30],
-    "special": [33, 35, 37, 38, 40],
+    "green": [25, 26, 28],
+    "dark_blue": [30, 31],
+    "special": [36, 37, 39],
     "railroad": [4, 12, 20, 32],
-    "utility": [16, 28]
+    "utility": [16, 29]
   },
   "special_tiles": {
     "go": 0,
     "jail": null,
-    "free_parking": null,
-    "go_to_jail": 36
+    "free_parking": 24,
+    "go_to_jail": 35
   }
 }

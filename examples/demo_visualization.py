@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import pygame
 from engine.board import MonopolyBoard
 from engine.state import GameState, PlayerState, PropertyState
-from renderer import MonopolyRenderer
+from visualization.renderer import MonopolyRenderer
 
 
 def create_demo_game_state(num_players: int = 4) -> GameState:

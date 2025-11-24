@@ -11,48 +11,48 @@ from engine.state import PropertyGroup
 # Type alias for RGB color
 Color = Tuple[int, int, int]
 
-# Property group colors (matching classic Monopoly)
+# Property group colors (brighter, more saturated for cartoony look)
 PROPERTY_COLORS: Dict[PropertyGroup, Color] = {
-    PropertyGroup.BROWN: (139, 69, 19),
-    PropertyGroup.LIGHT_BLUE: (173, 216, 230),
-    PropertyGroup.PINK: (255, 192, 203),
-    PropertyGroup.PURPLE: (147, 112, 219),
-    PropertyGroup.ORANGE: (255, 165, 0),
-    PropertyGroup.RED: (220, 20, 60),
-    PropertyGroup.YELLOW: (255, 255, 0),
-    PropertyGroup.GREEN: (34, 139, 34),
-    PropertyGroup.DARK_BLUE: (0, 0, 139),
-    PropertyGroup.RAILROAD: (0, 0, 0),
-    PropertyGroup.UTILITY: (200, 200, 200),
-    PropertyGroup.SPECIAL: (200, 200, 200),
+    PropertyGroup.BROWN: (165, 85, 40),        # Brighter brown
+    PropertyGroup.LIGHT_BLUE: (100, 200, 255), # More vibrant light blue
+    PropertyGroup.PINK: (255, 105, 180),       # Hot pink
+    PropertyGroup.PURPLE: (160, 70, 255),      # Brighter purple
+    PropertyGroup.ORANGE: (255, 140, 0),       # Vivid orange
+    PropertyGroup.RED: (255, 30, 70),          # Bright red
+    PropertyGroup.YELLOW: (255, 220, 0),       # Golden yellow
+    PropertyGroup.GREEN: (50, 205, 50),        # Lime green
+    PropertyGroup.DARK_BLUE: (30, 60, 255),    # Royal blue
+    PropertyGroup.RAILROAD: (40, 40, 40),      # Dark gray instead of black
+    PropertyGroup.UTILITY: (160, 220, 255),    # Light sky blue
+    PropertyGroup.SPECIAL: (255, 180, 255),    # Lavender
 }
 
-# Player colors (distinct colors for up to 6 players)
+# Player colors (bright, saturated colors for up to 6 players)
 PLAYER_COLORS: list[Color] = [
-    (255, 0, 0),      # Red
-    (0, 0, 255),      # Blue
-    (0, 200, 0),      # Green
-    (255, 255, 0),    # Yellow
-    (255, 0, 255),    # Magenta
-    (0, 255, 255),    # Cyan
+    (255, 50, 50),    # Bright red
+    (50, 100, 255),   # Bright blue
+    (50, 220, 50),    # Bright green
+    (255, 200, 20),   # Golden yellow
+    (255, 50, 255),   # Bright magenta
+    (20, 220, 255),   # Bright cyan
 ]
 
-# UI colors
-BOARD_BACKGROUND: Color = (240, 240, 220)
-TILE_BACKGROUND: Color = (255, 255, 255)
-TILE_BORDER: Color = (0, 0, 0)
-TEXT_COLOR: Color = (0, 0, 0)
-INFO_PANEL_BG: Color = (240, 240, 240)
-INFO_PANEL_BORDER: Color = (100, 100, 100)
+# UI colors (brighter, more vibrant)
+BOARD_BACKGROUND: Color = (245, 250, 235)      # Soft cream
+TILE_BACKGROUND: Color = (255, 255, 255)       # Pure white
+TILE_BORDER: Color = (30, 30, 30)              # Slightly softer black
+TEXT_COLOR: Color = (20, 20, 20)               # Dark gray for better contrast
+INFO_PANEL_BG: Color = (250, 250, 250)         # Bright white
+INFO_PANEL_BORDER: Color = (120, 120, 120)     # Medium gray
 
-# Special tile colors
-GO_COLOR: Color = (255, 100, 100)
-JAIL_COLOR: Color = (200, 200, 200)
-FREE_PARKING_COLOR: Color = (150, 200, 150)
-GO_TO_JAIL_COLOR: Color = (255, 150, 150)
-CHANCE_COLOR: Color = (255, 200, 100)
-COMMUNITY_CHEST_COLOR: Color = (150, 200, 255)
-TAX_COLOR: Color = (180, 180, 180)
+# Special tile colors (more vibrant and playful)
+GO_COLOR: Color = (100, 255, 100)              # Bright green (money!)
+JAIL_COLOR: Color = (180, 180, 180)            # Medium gray
+FREE_PARKING_COLOR: Color = (100, 200, 255)    # Sky blue
+GO_TO_JAIL_COLOR: Color = (255, 100, 100)      # Bright red
+CHANCE_COLOR: Color = (255, 180, 50)           # Bright orange
+COMMUNITY_CHEST_COLOR: Color = (100, 180, 255) # Light blue
+TAX_COLOR: Color = (255, 220, 100)             # Yellow (warning color)
 
 # Building colors
 HOUSE_COLOR: Color = (0, 150, 0)
