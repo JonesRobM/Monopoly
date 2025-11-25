@@ -20,7 +20,7 @@ class MonopolyBoard:
     """
     Monopoly board with configurable tiles.
 
-    By default, loads the Stoke-on-Trent board (41 tiles).
+    By default, loads the US Standard Monopoly board (40 tiles).
     Can also load custom boards or use the hardcoded classic board.
 
     Tile numbering: 0 (GO) to N-1 (last tile)
@@ -35,16 +35,16 @@ class MonopolyBoard:
         Initialize a Monopoly board.
 
         Args:
-            board_name: Name of board to load from JSON (e.g., "stoke_on_trent").
-                       If None, loads default board (Stoke-on-Trent).
+            board_name: Name of board to load from JSON (e.g., "us_standard", "stoke_on_trent").
+                       If None, loads default board (US Standard Monopoly).
             use_hardcoded: If True, use the hardcoded classic 40-tile board
                           instead of loading from JSON.
 
         Examples:
-            # Load default Stoke-on-Trent board
+            # Load default US Standard board
             board = MonopolyBoard()
 
-            # Load specific board
+            # Load specific board (e.g., custom Stoke-on-Trent)
             board = MonopolyBoard("stoke_on_trent")
 
             # Use hardcoded classic board

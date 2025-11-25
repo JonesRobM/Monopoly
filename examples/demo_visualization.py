@@ -97,12 +97,17 @@ def demo_static_board():
     """Demo 1: Display a static board with game state."""
     print("Demo 1: Static Board Display")
     print("This demo shows a static game state with multiple players,")
-    print("properties, houses, and hotels. Close the window to continue.")
+    print("properties, houses, and hotels.")
+    print()
+    print("Controls:")
+    print("  - TAB or 'I' key: Toggle info panel")
+    print("  - Click on players: View detailed properties")
+    print("  - ESC: Close window")
     print()
 
-    # Create board and renderer
+    # Create board and renderer (windowed mode)
     board = MonopolyBoard()
-    renderer = MonopolyRenderer(board, enable_animation=False)
+    renderer = MonopolyRenderer(board, enable_animation=False, fullscreen=False)
 
     # Create demo game state
     game_state = create_demo_game_state(num_players=4)
@@ -111,7 +116,7 @@ def demo_static_board():
     running = True
     while running:
         # Handle events
-        running = renderer.handle_events()
+        running = renderer.handle_events(game_state)
 
         # Render
         renderer.render(game_state)
@@ -123,12 +128,16 @@ def demo_animated_movement():
     """Demo 2: Animated player movement."""
     print("\nDemo 2: Animated Player Movement")
     print("This demo shows smooth player movement around the board.")
-    print("Players will move automatically. Close the window to continue.")
+    print()
+    print("Controls:")
+    print("  - TAB or 'I' key: Toggle info panel")
+    print("  - Click on players: View detailed properties")
+    print("  - ESC: Close window")
     print()
 
-    # Create board and renderer
+    # Create board and renderer (windowed mode)
     board = MonopolyBoard()
-    renderer = MonopolyRenderer(board, enable_animation=True)
+    renderer = MonopolyRenderer(board, enable_animation=True, fullscreen=False)
 
     # Create initial game state
     game_state = create_demo_game_state(num_players=4)
@@ -143,7 +152,7 @@ def demo_animated_movement():
 
     while running and position_idx < len(positions):
         # Handle events
-        running = renderer.handle_events()
+        running = renderer.handle_events(game_state)
 
         # Update player position periodically
         current_time = time.time()
@@ -160,27 +169,47 @@ def demo_animated_movement():
 
 
 def demo_with_messages():
-    """Demo 3: Game with messages and updates."""
-    print("\nDemo 3: Game with Messages")
-    print("This demo shows game events with message displays.")
-    print("Close the window to continue.")
+    """Demo 3: Game with messages and transaction notifications."""
+    print("\nDemo 3: Game with Messages and Transaction Notifications")
+    print("This demo shows game events with message displays and transaction pop-ups.")
+    print("Watch the bottom-right corner for transaction notifications!")
+    print()
+    print("Controls:")
+    print("  - TAB or 'I' key: Toggle info panel")
+    print("  - Click on players: View detailed properties")
+    print("  - ESC: Close window")
     print()
 
-    # Create board and renderer
+    # Create board and renderer (windowed mode)
     board = MonopolyBoard()
-    renderer = MonopolyRenderer(board, enable_animation=True)
+    renderer = MonopolyRenderer(board, enable_animation=True, fullscreen=False)
 
     # Create initial game state
     game_state = create_demo_game_state(num_players=4)
 
-    # Event sequence
+    # Event sequence with both messages and transactions
+    def add_transaction_buy():
+        renderer.add_transaction("Player 0 bought Oriental Avenue for $100")
+
+    def add_transaction_rent():
+        renderer.add_transaction("Player 3 paid $200 rent to Player 2")
+
+    def add_transaction_house():
+        renderer.add_transaction("Player 2 built a house on New York Avenue")
+
+    def add_transaction_mortgage():
+        renderer.add_transaction("Player 1 mortgaged Baltic Avenue for $30")
+
     events = [
         (1.0, "Player 0 rolls 4, 3", lambda: None),
         (2.0, "Player 0 moves to position 7", lambda: setattr(game_state.players[0], 'position', 7)),
-        (3.5, "Player 0 buys property", lambda: None),
-        (5.0, "Player 1 rolls doubles!", lambda: None),
-        (6.0, "Player 2 builds a house", lambda: None),
-        (7.5, "Player 3 pays rent $200", lambda: None),
+        (3.0, "", add_transaction_buy),
+        (4.5, "Player 1 rolls doubles!", lambda: None),
+        (5.5, "", add_transaction_mortgage),
+        (6.5, "Player 2 builds a house", lambda: None),
+        (7.0, "", add_transaction_house),
+        (8.5, "Player 3 pays rent", lambda: None),
+        (9.0, "", add_transaction_rent),
     ]
 
     running = True
@@ -189,13 +218,14 @@ def demo_with_messages():
 
     while running and event_idx < len(events):
         # Handle events
-        running = renderer.handle_events()
+        running = renderer.handle_events(game_state)
 
         # Check for timed events
         current_time = time.time() - start_time
         while event_idx < len(events) and current_time >= events[event_idx][0]:
             _, message, action = events[event_idx]
-            renderer.add_message(message)
+            if message:  # Only add message if not empty
+                renderer.add_message(message)
             action()
             event_idx += 1
 
@@ -205,22 +235,29 @@ def demo_with_messages():
     # Keep showing for a bit
     end_time = time.time() + 3.0
     while running and time.time() < end_time:
-        running = renderer.handle_events()
+        running = renderer.handle_events(game_state)
         renderer.render(game_state)
 
     renderer.close()
 
 
 def demo_interactive():
-    """Demo 4: Interactive board (press SPACE to advance turn)."""
-    print("\nDemo 4: Interactive Board")
-    print("Press SPACE to advance to the next turn.")
-    print("Press ESC or close window to exit.")
+    """Demo 4: Interactive board with transaction notifications (press SPACE to advance turn)."""
+    print("\nDemo 4: Interactive Board with Fullscreen Option")
     print()
+    print("Controls:")
+    print("  - SPACE: Advance to next turn")
+    print("  - TAB or 'I' key: Toggle info panel")
+    print("  - Click on players: View detailed properties")
+    print("  - ESC: Exit")
+    print()
+
+    # Ask user for fullscreen preference
+    use_fullscreen = input("Use fullscreen mode? (y/n, default=n): ").strip().lower() == 'y'
 
     # Create board and renderer
     board = MonopolyBoard()
-    renderer = MonopolyRenderer(board, enable_animation=True)
+    renderer = MonopolyRenderer(board, enable_animation=True, fullscreen=use_fullscreen)
 
     # Create initial game state
     game_state = create_demo_game_state(num_players=4)
@@ -244,14 +281,34 @@ def demo_interactive():
                     dice2 = (game_state.turn_number * 5) % 6 + 1
                     game_state.last_dice_roll = (dice1, dice2)
 
+                    old_position = current_player.position
                     new_position = (current_player.position + dice1 + dice2) % board.num_tiles
                     current_player.position = new_position
 
                     # Message
                     renderer.add_message(f"Player {current_player.player_id} rolls {dice1}, {dice2}")
 
+                    # Add transaction notification based on the tile
+                    try:
+                        tile_info = board.get_tile(new_position)
+                        if tile_info.tile_type.name == "PROPERTY":
+                            renderer.add_transaction(f"Player {current_player.player_id} landed on {tile_info.name}")
+                        elif tile_info.tile_type.name == "RAILROAD":
+                            renderer.add_transaction(f"Player {current_player.player_id} visited {tile_info.name}")
+                        elif tile_info.tile_type.name == "UTILITY":
+                            renderer.add_transaction(f"Player {current_player.player_id} landed on {tile_info.name}")
+                    except:
+                        pass
+
                     # Next player
                     game_state.current_player_idx = (game_state.current_player_idx + 1) % len(game_state.players)
+                elif event.key == pygame.K_TAB or event.key == pygame.K_i:
+                    # Toggle info panel
+                    renderer.info_panel_visible = not renderer.info_panel_visible
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # Handle clicks on info panel
+                if renderer.info_panel_visible:
+                    renderer.info_panel.handle_click(event.pos, game_state)
 
         # Render
         renderer.render(game_state)

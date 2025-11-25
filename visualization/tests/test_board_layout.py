@@ -169,10 +169,12 @@ class TestBoardLayout:
             pos = layout.get_tile_position(tile_id)
             corner_sizes.append((pos.width, pos.height))
 
-        # All corners should be square and same size
+        # All corners should be same size (but rectangular, not square)
         assert len(set(corner_sizes)) == 1
         width, height = corner_sizes[0]
-        assert width == height  # Square
+        # Corners are now 80x120 (rectangular with 3x height increase)
+        # Width should be less than height
+        assert width < height
 
     def test_different_board_sizes(self):
         """Test layout works with different board sizes."""

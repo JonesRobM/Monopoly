@@ -414,7 +414,7 @@ class BoardConfigLoader:
         return property_groups
 
 
-def load_board_config(board_name: str = "stoke_on_trent") -> tuple[Dict[int, TileInfo], Dict[PropertyGroup, List[int]], BoardMetadata]:
+def load_board_config(board_name: str = "us_standard") -> tuple[Dict[int, TileInfo], Dict[PropertyGroup, List[int]], BoardMetadata]:
     """
     Load a board configuration by name.
 
@@ -425,7 +425,7 @@ def load_board_config(board_name: str = "stoke_on_trent") -> tuple[Dict[int, Til
         Tuple of (tiles dict, property_groups dict, metadata)
 
     Example:
-        >>> tiles, groups, meta = load_board_config("stoke_on_trent")
+        >>> tiles, groups, meta = load_board_config("us_standard")
         >>> print(f"Loaded {meta.name} with {meta.num_tiles} tiles")
     """
     boards_dir = Path(__file__).parent / "boards"

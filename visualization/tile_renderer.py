@@ -282,7 +282,7 @@ class TileRenderer:
         if tile_info.property_info:
             # Color bar - prominent and visible
             color = get_property_color(tile_info.property_info.group)
-            color_bar_height = 20
+            color_bar_height = int(20 * 2 / 3)  # Reduced to 2/3 (13px)
 
             if side == "bottom":
                 color_rect = pygame.Rect(rect.x + 2, rect.y + 2, rect.width - 4, color_bar_height)
@@ -327,11 +327,11 @@ class TileRenderer:
             for i, line in enumerate(lines):
                 text = self.font.render(line, True, TEXT_COLOR)
 
-                # Rotate text based on side
+                """# Rotate text based on side
                 if side == "top":
                     text = pygame.transform.rotate(text, 180)
                 elif side in ["left", "right"]:
-                    text = pygame.transform.rotate(text, 90 if side == "left" else -90)
+                    text = pygame.transform.rotate(text, 90 if side == "left" else -90)"""
 
                 y_pos = start_y + i * line_height
                 text_rect = text.get_rect(center=(rect.centerx, y_pos))

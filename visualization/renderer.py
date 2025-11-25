@@ -13,7 +13,7 @@ from visualization.board_layout import BoardLayout
 from visualization.tile_renderer import TileRenderer
 from visualization.player_renderer import PlayerRenderer, BuildingRenderer, OwnershipIndicator
 from visualization.animation import AnimationManager
-from visualization.info_panel import InfoPanel, CenterPanel, MessageDisplay
+from visualization.info_panel import InfoPanel, CenterPanel, MessageDisplay, TransactionNotification
 from visualization.colors import BOARD_BACKGROUND
 
 
@@ -44,37 +44,61 @@ class MonopolyRenderer:
     def __init__(
         self,
         board: MonopolyBoard,
-        window_width: int = 1200,
-        window_height: int = 800,
+        window_width: int = 1400,
+        window_height: int = 980,
         enable_animation: bool = True,
-        fps: int = 60
+        fps: int = 60,
+        fullscreen: bool = False
     ):
         """
         Initialize Monopoly renderer.
 
         Args:
             board: Monopoly board configuration
-            window_width: Window width in pixels
-            window_height: Window height in pixels
+            window_width: Window width in pixels (used if not fullscreen)
+            window_height: Window height in pixels (used if not fullscreen)
             enable_animation: Enable smooth animations
             fps: Target frames per second
+            fullscreen: Enable fullscreen mode
         """
         self.board = board
-        self.window_width = window_width
-        self.window_height = window_height
         self.enable_animation = enable_animation
         self.fps = fps
+        self.fullscreen = fullscreen
 
         # Initialize pygame
         pygame.init()
-        pygame.display.set_caption("Monopoly AI")
+        pygame.display.set_caption("Monopoly")
 
         # Create window and surfaces
-        self.screen = pygame.display.set_mode((window_width, window_height))
-        self.board_surface = pygame.Surface((window_width, window_height))
+        if fullscreen:
+            # Get display info for fullscreen resolution
+            display_info = pygame.display.Info()
+            self.window_width = display_info.current_w
+            self.window_height = display_info.current_h
+            self.screen = pygame.display.set_mode((self.window_width, self.window_height), pygame.FULLSCREEN)
+        else:
+            self.window_width = window_width
+            self.window_height = window_height
+            self.screen = pygame.display.set_mode((window_width, window_height))
 
-        # Calculate board layout
-        board_size = min(window_width - 350, window_height - 50)
+        self.board_surface = pygame.Surface((self.window_width, self.window_height))
+
+        # Calculate board layout with proper padding
+        # Reserve space for info panel (200px) + padding (40px) = 240px
+        # Add padding around board (15px on all sides for tighter fit)
+        info_panel_width = 200
+        padding = 15
+        gap_between = 10  # Gap between board and info panel
+
+        # Calculate available space
+        available_width = self.window_width - info_panel_width - 2 * padding - gap_between
+        available_height = self.window_height - 2 * padding
+
+        # Use the smaller dimension to ensure board fits
+        board_size = min(available_width, available_height)
+        self.board_padding = padding
+
         self.layout = BoardLayout(board.num_tiles, board_size)
 
         # Create rendering components
@@ -83,17 +107,19 @@ class MonopolyRenderer:
         self.building_renderer = BuildingRenderer()
         self.ownership_indicator = OwnershipIndicator()
 
-        # Create info panel
-        info_panel_x = board_size + 20
-        info_panel_y = 10
-        info_panel_width = window_width - board_size - 30
-        info_panel_height = window_height - 20
+        # Create info panel (smaller, toggleable)
+        # Position info panel right after the board with gap
+        info_panel_x = padding + board_size + gap_between
+        info_panel_y = padding
+        info_panel_height = self.window_height - 2 * padding
 
+        self.info_panel_visible = True  # Toggle state
         self.info_panel = InfoPanel(
             info_panel_x,
             info_panel_y,
             info_panel_width,
-            info_panel_height
+            info_panel_height,
+            board=board
         )
 
         # Create center panel with board reference
@@ -101,6 +127,9 @@ class MonopolyRenderer:
 
         # Create message display
         self.message_display = MessageDisplay()
+
+        # Create transaction notification display
+        self.transaction_notification = TransactionNotification()
 
         # Animation manager
         self.animation_manager = AnimationManager() if enable_animation else None
@@ -149,18 +178,22 @@ class MonopolyRenderer:
         # Render player pieces
         self._render_players(game_state)
 
-        # Blit board surface to screen
-        self.screen.blit(self.board_surface, (0, 0))
+        # Blit board surface to screen with padding
+        self.screen.blit(self.board_surface, (self.board_padding, self.board_padding))
 
-        # Render info panel
-        self.info_panel.render(
-            self.screen,
-            game_state,
-            board_name
-        )
+        # Render info panel (if visible)
+        if self.info_panel_visible:
+            self.info_panel.render(
+                self.screen,
+                game_state,
+                board_name
+            )
 
         # Render messages
         self.message_display.render(self.screen, 10, 10)
+
+        # Render transaction notifications (bottom-right corner)
+        self.transaction_notification.render(self.screen)
 
         # Update display
         pygame.display.flip()
@@ -352,9 +385,26 @@ class MonopolyRenderer:
         """
         self.message_display.add_message(message)
 
-    def handle_events(self) -> bool:
+    def add_transaction(self, message: str) -> None:
+        """
+        Add a transaction notification (displayed in bottom-right corner).
+
+        Args:
+            message: Transaction message text
+
+        Examples:
+            renderer.add_transaction("Player 0 bought Mediterranean Avenue for $60")
+            renderer.add_transaction("Player 1 paid $200 rent to Player 2")
+            renderer.add_transaction("Player 3 built a house on Baltic Avenue")
+        """
+        self.transaction_notification.add_transaction(message)
+
+    def handle_events(self, game_state: Optional[GameState] = None) -> bool:
         """
         Handle pygame events.
+
+        Args:
+            game_state: Optional game state for interactive features
 
         Returns:
             True if window should stay open, False if closed
@@ -365,6 +415,13 @@ class MonopolyRenderer:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     return False
+                elif event.key == pygame.K_TAB or event.key == pygame.K_i:
+                    # Toggle info panel visibility
+                    self.info_panel_visible = not self.info_panel_visible
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # Handle mouse clicks for info panel interaction
+                if self.info_panel_visible and game_state is not None:
+                    self.info_panel.handle_click(event.pos, game_state)
 
         return True
 

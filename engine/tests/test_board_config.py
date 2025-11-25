@@ -22,19 +22,19 @@ from engine.state import TileType, PropertyGroup
 class TestBoardConfigLoader:
     """Tests for BoardConfigLoader class."""
 
-    def test_load_default_stoke_board(self):
-        """Test loading the default Stoke-on-Trent board."""
-        tiles, groups, meta = get_default_board()
+    def test_load_default_us_standard_board(self):
+        """Test loading the US Standard Monopoly board."""
+        tiles, groups, meta = load_board_config("us_standard")
 
         # Check metadata
-        assert meta.name == "Stoke-on-Trent"
-        assert meta.num_tiles == 41
-        assert meta.currency_symbol == "£"
+        assert meta.name == "US Standard Monopoly"
+        assert meta.num_tiles == 40
+        assert meta.currency_symbol == "$"
         assert meta.go_salary == 200
 
         # Check tiles
-        assert len(tiles) == 41
-        assert all(i in tiles for i in range(41))
+        assert len(tiles) == 40
+        assert all(i in tiles for i in range(40))
 
         # Check first tile is GO
         assert tiles[0].tile_type == TileType.GO
@@ -43,57 +43,67 @@ class TestBoardConfigLoader:
         # Check property groups exist
         assert PropertyGroup.BROWN in groups
         assert PropertyGroup.LIGHT_BLUE in groups
-        assert PropertyGroup.SPECIAL in groups
+        assert PropertyGroup.PINK in groups
+        assert PropertyGroup.ORANGE in groups
+        assert PropertyGroup.RED in groups
+        assert PropertyGroup.YELLOW in groups
+        assert PropertyGroup.GREEN in groups
+        assert PropertyGroup.DARK_BLUE in groups
         assert PropertyGroup.RAILROAD in groups
         assert PropertyGroup.UTILITY in groups
 
     def test_brown_properties(self):
         """Test brown property group configuration."""
-        tiles, groups, meta = get_default_board()
+        tiles, groups, meta = load_board_config("us_standard")
 
         brown_tiles = groups[PropertyGroup.BROWN]
         assert len(brown_tiles) == 2
-        assert 1 in brown_tiles  # The Potteries Museum
-        assert 2 in brown_tiles  # Stoke Minster
+        assert 1 in brown_tiles  # Mediterranean Avenue
+        assert 3 in brown_tiles  # Baltic Avenue
 
-        # Verify tile 1
+        # Verify tile 1 (Mediterranean Avenue)
         tile1 = tiles[1]
         assert tile1.tile_type == TileType.PROPERTY
-        assert tile1.name == "The Potteries Museum & Art Gallery"
+        assert tile1.name == "Mediterranean Avenue"
         assert tile1.property_info is not None
         assert tile1.property_info.group == PropertyGroup.BROWN
         assert tile1.property_info.purchase_price == 60
         assert tile1.property_info.base_rent == 2
 
-    def test_special_property_group(self):
-        """Test the custom 'special' property group."""
+    def test_light_blue_properties(self):
+        """Test light blue property group configuration."""
         tiles, groups, meta = get_default_board()
 
-        special_tiles = groups[PropertyGroup.SPECIAL]
-        assert len(special_tiles) == 5
-        expected_ids = [33, 35, 37, 38, 40]
-        assert special_tiles == expected_ids
+        light_blue_tiles = groups[PropertyGroup.LIGHT_BLUE]
+        assert len(light_blue_tiles) == 3
+        assert 6 in light_blue_tiles  # Oriental Avenue
+        assert 8 in light_blue_tiles  # Vermont Avenue
+        assert 9 in light_blue_tiles  # Connecticut Avenue
 
-        # Verify all special tiles are properties
-        for tile_id in special_tiles:
+        # Verify all light blue tiles are properties
+        for tile_id in light_blue_tiles:
             tile = tiles[tile_id]
             assert tile.tile_type == TileType.PROPERTY
-            assert tile.property_info.group == PropertyGroup.SPECIAL
+            assert tile.property_info.group == PropertyGroup.LIGHT_BLUE
 
     def test_railroad_stations(self):
         """Test railroad/station tiles."""
-        tiles, groups, meta = get_default_board()
+        tiles, groups, meta = load_board_config("us_standard")
 
         railroad_tiles = groups[PropertyGroup.RAILROAD]
         assert len(railroad_tiles) == 4
+        assert 5 in railroad_tiles   # Reading Railroad
+        assert 15 in railroad_tiles  # Pennsylvania Railroad
+        assert 25 in railroad_tiles  # B&O Railroad
+        assert 35 in railroad_tiles  # Short Line
 
-        # Verify tile 4 (Hanley Bus Station)
-        tile4 = tiles[4]
-        assert tile4.tile_type == TileType.RAILROAD
-        assert tile4.name == "Hanley Bus Station"
-        assert tile4.railroad_info is not None
-        assert tile4.railroad_info.purchase_price == 200
-        assert tile4.railroad_info.mortgage_value == 100
+        # Verify tile 5 (Reading Railroad)
+        tile5 = tiles[5]
+        assert tile5.tile_type == TileType.RAILROAD
+        assert tile5.name == "Reading Railroad"
+        assert tile5.railroad_info is not None
+        assert tile5.railroad_info.purchase_price == 200
+        assert tile5.railroad_info.mortgage_value == 100
 
     def test_utilities(self):
         """Test utility tiles."""
@@ -101,53 +111,56 @@ class TestBoardConfigLoader:
 
         utility_tiles = groups[PropertyGroup.UTILITY]
         assert len(utility_tiles) == 2
+        assert 12 in utility_tiles  # Electric Company
+        assert 28 in utility_tiles  # Water Works
 
-        # Verify tile 16 (Electric Company)
-        tile16 = tiles[16]
-        assert tile16.tile_type == TileType.UTILITY
-        assert tile16.name == "Electric Company"
-        assert tile16.utility_info is not None
-        assert tile16.utility_info.purchase_price == 150
+        # Verify tile 12 (Electric Company)
+        tile12 = tiles[12]
+        assert tile12.tile_type == TileType.UTILITY
+        assert tile12.name == "Electric Company"
+        assert tile12.utility_info is not None
+        assert tile12.utility_info.purchase_price == 150
 
     def test_tax_tiles(self):
         """Test tax tiles."""
         tiles, groups, meta = get_default_board()
 
-        # Tile 8: Income Tax
-        tile8 = tiles[8]
-        assert tile8.tile_type == TileType.TAX
-        assert tile8.name == "Income Tax"
-        assert tile8.tax_amount == 200
+        # Tile 4: Income Tax
+        tile4 = tiles[4]
+        assert tile4.tile_type == TileType.TAX
+        assert tile4.name == "Income Tax"
+        assert tile4.tax_amount == 200
 
-        # Tile 34: Super Tax
-        tile34 = tiles[34]
-        assert tile34.tile_type == TileType.TAX
-        assert tile34.name == "Super Tax"
-        assert tile34.tax_amount == 100
+        # Tile 38: Luxury Tax
+        tile38 = tiles[38]
+        assert tile38.tile_type == TileType.TAX
+        assert tile38.name == "Luxury Tax"
+        assert tile38.tax_amount == 100
 
     def test_special_tiles(self):
         """Test special tiles (GO, Jail, etc.)."""
         tiles, groups, meta = get_default_board()
 
-        # GO tile
+        # Corner tiles
         assert tiles[0].tile_type == TileType.GO
+        assert tiles[10].tile_type == TileType.JAIL
+        assert tiles[20].tile_type == TileType.FREE_PARKING
+        assert tiles[30].tile_type == TileType.GOTO_JAIL
 
-        # Community Chest
-        assert tiles[3].tile_type == TileType.COMMUNITY_CHEST
-        assert tiles[26].tile_type == TileType.COMMUNITY_CHEST
-        assert tiles[39].tile_type == TileType.COMMUNITY_CHEST
+        # Community Chest (tiles 2, 17, 33)
+        assert tiles[2].tile_type == TileType.COMMUNITY_CHEST
+        assert tiles[17].tile_type == TileType.COMMUNITY_CHEST
+        assert tiles[33].tile_type == TileType.COMMUNITY_CHEST
 
-        # Chance
-        assert tiles[11].tile_type == TileType.CHANCE
-        assert tiles[19].tile_type == TileType.CHANCE
-        assert tiles[31].tile_type == TileType.CHANCE
-
-        # Go To Jail
-        assert tiles[36].tile_type == TileType.GOTO_JAIL
+        # Chance (tiles 7, 22, 36)
+        assert tiles[7].tile_type == TileType.CHANCE
+        assert tiles[22].tile_type == TileType.CHANCE
+        assert tiles[36].tile_type == TileType.CHANCE
 
     def test_list_available_boards(self):
         """Test listing available board configurations."""
         boards = list_available_boards()
+        assert "us_standard" in boards
         assert "stoke_on_trent" in boards
 
 
@@ -463,11 +476,12 @@ class TestTileTypeAliases:
     """Tests for tile type aliases (e.g., 'station' for 'railroad')."""
 
     def test_station_alias(self):
-        """Test that 'station' is correctly mapped to 'railroad'."""
-        tiles, groups, meta = get_default_board()
+        """Test that railroads in Stoke board are loaded correctly."""
+        # Load Stoke-on-Trent board which has railroads
+        tiles, groups, meta = load_board_config("stoke_on_trent")
 
-        # Verify stations are loaded as railroads
-        station_tile = tiles[4]  # Hanley Bus Station
+        # Verify railroads are loaded correctly (tile 5 is first railroad)
+        station_tile = tiles[5]  # Hanley Bus Station
         assert station_tile.tile_type == TileType.RAILROAD
         assert station_tile.railroad_info is not None
 
@@ -475,8 +489,8 @@ class TestTileTypeAliases:
         """Test that 'go_to_jail' is normalized to 'goto_jail'."""
         tiles, groups, meta = get_default_board()
 
-        # Tile 36 should be GOTO_JAIL
-        gotojail_tile = tiles[36]
+        # Tile 30 should be GOTO_JAIL
+        gotojail_tile = tiles[30]
         assert gotojail_tile.tile_type == TileType.GOTO_JAIL
 
 
@@ -485,14 +499,14 @@ class TestBoardMetadata:
 
     def test_metadata_extraction(self):
         """Test that metadata is correctly extracted."""
-        tiles, groups, meta = get_default_board()
+        tiles, groups, meta = load_board_config("us_standard")
 
         assert isinstance(meta, BoardMetadata)
-        assert meta.name == "Stoke-on-Trent"
-        assert meta.description == "Custom Stoke-on-Trent themed Monopoly board with 41 tiles"
-        assert meta.currency_symbol == "£"
+        assert meta.name == "US Standard Monopoly"
+        assert meta.description == "Standard US Monopoly board with 40 tiles"
+        assert meta.currency_symbol == "$"
         assert meta.go_salary == 200
-        assert meta.num_tiles == 41
+        assert meta.num_tiles == 40
 
     def test_metadata_immutability(self):
         """Test that BoardMetadata is immutable."""

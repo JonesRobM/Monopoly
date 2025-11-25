@@ -1,0 +1,214 @@
+{
+  "players": [
+    {
+      "id": "alice",
+      "name": "Alice",
+      "strategy_type": "money_maximiser",
+      "objective": "Maximise cash reserves at all times.",
+      "priority_weights": {
+        "cash": 1.0,
+        "rent_yield": 0.4,
+        "property_count": 0.2,
+        "development": 0.1,
+        "trade_value": 0.2,
+        "monopoly_completion": 0.1
+      },
+      "behaviours": {
+        "buy_property": "Very conservative unless ROI is high.",
+        "build_houses": "Rarely; only when cash buffer > threshold.",
+        "trade": "Low; only for strong net-positive liquidity.",
+        "risk_tolerance": "Low",
+        "target_tiles": []
+      }
+    },
+    {
+      "id": "bob",
+      "name": "Bob",
+      "strategy_type": "high_value_acquirer",
+      "objective": "Acquire and develop high-rent colour sets.",
+      "priority_weights": {
+        "cash": 0.4,
+        "rent_yield": 1.0,
+        "property_count": 0.4,
+        "development": 0.9,
+        "trade_value": 0.3,
+        "monopoly_completion": 0.9
+      },
+      "behaviours": {
+        "buy_property": "Aggressive on red/green/dark-blue sets.",
+        "build_houses": "High priority once controlling a high-value set.",
+        "trade": "Moderate; trades to secure key monopolies.",
+        "risk_tolerance": "High",
+        "target_tiles": ["red", "green", "dark_blue"]
+      }
+    },
+    {
+      "id": "charlie",
+      "name": "Charlie",
+      "strategy_type": "infrastructure_collector",
+      "objective": "Acquire utilities and railways.",
+      "priority_weights": {
+        "cash": 0.4,
+        "rent_yield": 0.5,
+        "property_count": 0.8,
+        "development": 0.1,
+        "trade_value": 0.4,
+        "monopoly_completion": 0.5
+      },
+      "behaviours": {
+        "buy_property": "Buys infrastructure first, streets second.",
+        "build_houses": "Low priority.",
+        "trade": "Moderate; trades aggressively for railways/utilities.",
+        "risk_tolerance": "Medium",
+        "target_tiles": ["utilities", "railroads"]
+      }
+    },
+    {
+      "id": "dee",
+      "name": "Dee",
+      "strategy_type": "trade_specialist",
+      "objective": "Achieve advantage through optimal trades.",
+      "priority_weights": {
+        "cash": 0.5,
+        "rent_yield": 0.5,
+        "property_count": 0.5,
+        "development": 0.3,
+        "trade_value": 1.0,
+        "monopoly_completion": 0.7
+      },
+      "behaviours": {
+        "buy_property": "Neutral; focuses on trade leverage.",
+        "build_houses": "Situational.",
+        "trade": "Very aggressive; seeks arbitrage.",
+        "risk_tolerance": "Medium",
+        "target_tiles": []
+      }
+    },
+    {
+      "id": "ethel",
+      "name": "Ethel",
+      "strategy_type": "property_hoarder",
+      "objective": "Acquire as many tiles as possible.",
+      "priority_weights": {
+        "cash": 0.4,
+        "rent_yield": 0.3,
+        "property_count": 1.0,
+        "development": 0.2,
+        "trade_value": 0.1,
+        "monopoly_completion": 0.3
+      },
+      "behaviours": {
+        "buy_property": "Buys everything except very low ROI.",
+        "build_houses": "Low priority; prefers breadth over depth.",
+        "trade": "Rare; avoids losing tiles.",
+        "risk_tolerance": "High",
+        "target_tiles": []
+      }
+    },
+    {
+      "id": "frankie",
+      "name": "Frankie",
+      "strategy_type": "development_maximiser",
+      "objective": "Maximise house/hotel construction.",
+      "priority_weights": {
+        "cash": 0.3,
+        "rent_yield": 0.8,
+        "property_count": 0.4,
+        "development": 1.0,
+        "trade_value": 0.3,
+        "monopoly_completion": 0.8
+      },
+      "behaviours": {
+        "buy_property": "Buys aggressively to complete sets.",
+        "build_houses": "Very aggressive; prioritises 3–4 houses per tile.",
+        "trade": "Moderate; trades to complete sets.",
+        "risk_tolerance": "High",
+        "target_tiles": ["monopoly_sets"]
+      }
+    },
+    {
+      "id": "greta",
+      "name": "Greta",
+      "strategy_type": "monopoly_completer",
+      "objective": "Complete any colour set early.",
+      "priority_weights": {
+        "cash": 0.4,
+        "rent_yield": 0.7,
+        "property_count": 0.5,
+        "development": 0.7,
+        "trade_value": 0.5,
+        "monopoly_completion": 1.0
+      },
+      "behaviours": {
+        "buy_property": "Strong early-game focus on blocking and completing sets.",
+        "build_houses": "Accelerates after completing a set.",
+        "trade": "Strategic; trades to complete sets only.",
+        "risk_tolerance": "Medium",
+        "target_tiles": ["any_colour_set"]
+      }
+    },
+    {
+      "id": "harry",
+      "name": "Harry",
+      "strategy_type": "resource_denial_player",
+      "objective": "Block opponents from completing monopolies.",
+      "priority_weights": {
+        "cash": 0.5,
+        "rent_yield": 0.5,
+        "property_count": 0.7,
+        "development": 0.3,
+        "trade_value": 0.7,
+        "monopoly_completion": 0.6
+      },
+      "behaviours": {
+        "buy_property": "Buys tiles primarily to deny others.",
+        "build_houses": "Low; defensive player.",
+        "trade": "Trades only when it weakens opponents.",
+        "risk_tolerance": "Medium",
+        "target_tiles": ["opponent_key_tiles"]
+      }
+    },
+    {
+      "id": "irene",
+      "name": "Irene",
+      "strategy_type": "risk_balanced_investor",
+      "objective": "Optimise ROI while maintaining liquidity.",
+      "priority_weights": {
+        "cash": 0.7,
+        "rent_yield": 0.7,
+        "property_count": 0.5,
+        "development": 0.5,
+        "trade_value": 0.4,
+        "monopoly_completion": 0.5
+      },
+      "behaviours": {
+        "buy_property": "Buys moderate-risk, moderate-reward streets.",
+        "build_houses": "Disciplined 2-house strategy.",
+        "trade": "Moderate; ROI-driven.",
+        "risk_tolerance": "Medium",
+        "target_tiles": []
+      }
+    },
+    {
+      "id": "jack",
+      "name": "Jack",
+      "strategy_type": "hyper_aggressive_player",
+      "objective": "Push high-risk, high-reward play to destabilise the table.",
+      "priority_weights": {
+        "cash": 0.2,
+        "rent_yield": 1.0,
+        "property_count": 0.5,
+        "development": 0.9,
+        "trade_value": 0.5,
+        "monopoly_completion": 0.7
+      },
+      "behaviours": {
+        "buy_property": "Buys nearly everything to flip later.",
+        "build_houses": "Hyper-aggressive 3–5 house strategy.",
+        "trade": "Opportunistic; often exploits tilted boards.",
+        "risk_tolerance": "Very High",
+        "target_tiles": []
+      }
+    }
+  ]
+}
