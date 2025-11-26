@@ -771,3 +771,11 @@ class MonopolyBoard:
             return tile.utility_info.mortgage_value
         else:
             raise ValueError(f"Tile {tile_id} cannot be mortgaged")
+
+    def get_house_cost(self, tile_id: int) -> int:
+        """Get the cost to build a house on a property."""
+        tile = self.get_tile(tile_id)
+        if tile.property_info:
+            return tile.property_info.house_cost
+        else:
+            raise ValueError(f"Tile {tile_id} is not a property that can have houses")

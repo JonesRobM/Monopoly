@@ -10,6 +10,21 @@ from typing import Optional, List, Dict, Set
 from enum import Enum, IntEnum
 
 
+class GamePhase(Enum):
+    """
+    Phases within a single turn.
+
+    This ensures deterministic turn progression and proper action sequencing.
+    Each phase restricts which actions are legal.
+    """
+    START = "start"  # Beginning of turn, roll dice or jail actions only
+    LANDED = "landed"  # After rolling/moving, handle landing effects
+    PURCHASE_DECISION = "purchase_decision"  # Decide to buy/decline unowned property
+    AUCTION = "auction"  # Active auction in progress
+    ACTIONS = "actions"  # Can perform optional actions (build, trade, etc)
+    END_PHASE = "end_phase"  # Turn complete, must end turn
+
+
 class TileType(Enum):
     """Types of tiles on the Monopoly board."""
     PROPERTY = "property"
@@ -184,6 +199,7 @@ class GameState:
     players: List[PlayerState]
     current_player_idx: int = 0
     turn_number: int = 0
+    current_phase: GamePhase = GamePhase.START
 
     # Board state
     properties: Dict[int, PropertyState] = field(default_factory=dict)
