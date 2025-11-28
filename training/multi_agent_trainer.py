@@ -342,8 +342,8 @@ class MultiAgentTrainer:
             # Step environment
             env.step(action)
 
-            # Render the game state (only every 20 steps for performance)
-            if self.render_mode is not None and step_count % 20 == 0:
+            # Render the game state after each action when in render mode
+            if self.render_mode is not None:
                 env.render()
 
             # Progress indicator every 50 steps (not in watch mode)

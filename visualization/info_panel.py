@@ -276,7 +276,7 @@ class InfoPanel:
         pygame.draw.circle(surface, color, (self.x + 15, text_y + 8), 8)
         pygame.draw.circle(surface, (0, 0, 0), (self.x + 15, text_y + 8), 8, 1)
 
-        header_text = f"Player {player.player_id}"
+        header_text = player.name if hasattr(player, 'name') and player.name else f"Player {player.player_id}"
         text = self.title_font.render(header_text, True, TEXT_COLOR)
         surface.blit(text, (self.x + 30, text_y))
 
@@ -555,7 +555,8 @@ class CenterPanel:
         current_player = game_state.current_player()
         player_color = get_player_color(current_player.player_id)
 
-        turn_text = f"Turn {game_state.turn_number} - Player {current_player.player_id}'s Turn"
+        player_name = current_player.name if hasattr(current_player, 'name') and current_player.name else f"Player {current_player.player_id}"
+        turn_text = f"Turn {game_state.turn_number} - {player_name}'s Turn"
         text = self.font.render(turn_text, True, player_color)
         text_rect = text.get_rect(center=(center_x, y))
         surface.blit(text, text_rect)
@@ -606,7 +607,7 @@ class CenterPanel:
             pygame.draw.circle(surface, (0, 0, 0), (circle_x, circle_y), 6, 1)
 
             # Player name
-            player_text = f"Player {player.player_id}"
+            player_text = player.name if hasattr(player, 'name') and player.name else f"Player {player.player_id}"
             text = self.small_font.render(player_text, True, TEXT_COLOR)
             surface.blit(text, (circle_x + 12, current_y + 2))
 
