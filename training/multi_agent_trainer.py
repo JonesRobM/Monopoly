@@ -466,6 +466,10 @@ class MultiAgentTrainer:
             for agent in self.agents.values():
                 agent.current_game_iteration = self.game_iteration
 
+            # Print maximum rewards every 10 games
+            if (game_num + 1) % 10 == 0:
+                self.evaluator.print_max_rewards(game_iteration=game_num + 1)
+
             # Update models every N games
             if (game_num + 1) % self.update_frequency == 0:
                 self.update_models()

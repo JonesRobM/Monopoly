@@ -44,6 +44,10 @@ class Evaluator:
         self.wins = {agent_id: 0 for agent_id in agent_ids}
         self.total_rewards = {agent_id: [] for agent_id in agent_ids}
 
+        # Per-game reward tracking for ALL agents (None if didn't play)
+        self.game_rewards = {agent_id: [] for agent_id in agent_ids}
+        self.max_rewards = {agent_id: None for agent_id in agent_ids}
+
         # Game history
         self.game_history = []
 
@@ -57,12 +61,26 @@ class Evaluator:
             winner_id: ID of winning agent
             rewards: Dictionary mapping agent_id to total reward in game
         """
+        # Update stats for participating agents
         for agent_id in participants:
             self.games_played[agent_id] += 1
             self.total_rewards[agent_id].append(rewards[agent_id])
 
             if agent_id == winner_id:
                 self.wins[agent_id] += 1
+
+        # Store rewards for ALL agents (None for non-participants)
+        for agent_id in self.agent_ids:
+            if agent_id in participants:
+                reward = rewards[agent_id]
+                self.game_rewards[agent_id].append(reward)
+
+                # Update max reward
+                if self.max_rewards[agent_id] is None or reward > self.max_rewards[agent_id]:
+                    self.max_rewards[agent_id] = reward
+            else:
+                # Agent didn't play this game - store None for masking
+                self.game_rewards[agent_id].append(None)
 
         # Record game history
         self.game_history.append({
@@ -116,6 +134,46 @@ class Evaluator:
             agent_id: self.get_average_reward(agent_id, last_n)
             for agent_id in self.agent_ids
         }
+
+    def get_max_reward(self, agent_id: str) -> Optional[float]:
+        """
+        Get maximum reward achieved by an agent.
+
+        Args:
+            agent_id: Agent ID
+
+        Returns:
+            Maximum reward, or None if agent hasn't played
+        """
+        return self.max_rewards[agent_id]
+
+    def get_all_max_rewards(self) -> Dict[str, Optional[float]]:
+        """Get maximum rewards for all agents."""
+        return dict(self.max_rewards)
+
+    def print_max_rewards(self, game_iteration: int):
+        """
+        Print maximum rewards for all agents.
+
+        Args:
+            game_iteration: Current game iteration
+        """
+        print(f"\n{'='*60}")
+        print(f"Maximum Rewards at Game {game_iteration}")
+        print(f"{'='*60}")
+        print(f"{'Agent':<12} {'Max Reward':<15} {'Games Played':<12}")
+        print(f"{'-'*60}")
+
+        for agent_id in sorted(self.agent_ids):
+            max_reward = self.max_rewards[agent_id]
+            games = self.games_played[agent_id]
+
+            if max_reward is not None:
+                print(f"{agent_id:<12} {max_reward:>12.2f}    {games:<12}")
+            else:
+                print(f"{agent_id:<12} {'N/A':>12}    {games:<12}")
+
+        print(f"{'='*60}\n")
 
     def log_metrics(self, game_iteration: int, verbose: bool = True):
         """
@@ -190,6 +248,8 @@ class Evaluator:
             'games_played': dict(self.games_played),
             'wins': dict(self.wins),
             'game_history': self.game_history,
+            'game_rewards': {k: v for k, v in self.game_rewards.items()},  # Include None values
+            'max_rewards': dict(self.max_rewards),
         }
 
         with open(filepath, 'w') as f:
@@ -208,6 +268,29 @@ class Evaluator:
         self.games_played = history_data['games_played']
         self.wins = history_data['wins']
         self.game_history = history_data['game_history']
+
+        # Load game_rewards and max_rewards if available (backwards compatibility)
+        if 'game_rewards' in history_data:
+            self.game_rewards = history_data['game_rewards']
+        else:
+            # Reconstruct from game_history for backwards compatibility
+            self.game_rewards = {agent_id: [] for agent_id in self.agent_ids}
+            for game in self.game_history:
+                for agent_id in self.agent_ids:
+                    if agent_id in game['participants']:
+                        self.game_rewards[agent_id].append(game['rewards'][agent_id])
+                    else:
+                        self.game_rewards[agent_id].append(None)
+
+        if 'max_rewards' in history_data:
+            self.max_rewards = history_data['max_rewards']
+        else:
+            # Reconstruct max_rewards
+            self.max_rewards = {agent_id: None for agent_id in self.agent_ids}
+            for agent_id in self.agent_ids:
+                valid_rewards = [r for r in self.game_rewards[agent_id] if r is not None]
+                if valid_rewards:
+                    self.max_rewards[agent_id] = max(valid_rewards)
 
         # Reconstruct total_rewards from history
         self.total_rewards = {agent_id: [] for agent_id in self.agent_ids}
