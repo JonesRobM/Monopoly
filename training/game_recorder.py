@@ -151,8 +151,15 @@ class GameRecorder:
             # GameState object
             player_cash = {p.player_id: p.cash for p in state.players}
             player_positions = {p.player_id: p.position for p in state.players}
-            property_owners = {tile_id: owner for tile_id, owner in state.property_owners.items()}
-            houses = {tile_id: count for tile_id, count in state.houses.items()}
+            # Derive property ownership from properties dict
+            property_owners = {}
+            houses = {}
+            if hasattr(state, 'properties'):
+                for tile_id, prop_state in state.properties.items():
+                    if hasattr(prop_state, 'owner') and prop_state.owner is not None:
+                        property_owners[tile_id] = prop_state.owner
+                    if hasattr(prop_state, 'num_houses'):
+                        houses[tile_id] = prop_state.num_houses
         else:
             # Dict representation
             player_cash = {i: p['cash'] for i, p in enumerate(state.get('players', []))}

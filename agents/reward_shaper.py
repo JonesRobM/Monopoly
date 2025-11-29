@@ -89,14 +89,15 @@ class CustomRewardShaper:
             self.weights['monopoly_completion'] * monopoly_reward
         )
 
-        # Action cost: small penalty for each action to encourage turn efficiency
+        # Action cost: penalty for each action to encourage turn efficiency
         # This prevents agents from taking unlimited actions per turn
         # END_TURN and forced actions (ROLL_DICE, etc.) have no penalty
         from engine.actions import ActionType
         if action_type and action_type not in [ActionType.END_TURN, ActionType.ROLL_DICE,
                                                  ActionType.ROLL_FOR_JAIL, ActionType.NOOP]:
-            # Small penalty per action taken (encourages ending turns efficiently)
-            total_reward -= 0.01
+            # Penalty per action taken (encourages ending turns efficiently)
+            # Increased from 0.01 to 0.05 to encourage faster turn ends
+            total_reward -= 0.05
 
         return total_reward
 

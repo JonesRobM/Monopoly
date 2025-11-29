@@ -372,6 +372,11 @@ class MultiAgentTrainer:
             # Step environment
             env.step(action)
 
+            # Check if game has ended (all agents terminated)
+            if all(env.terminations.values()):
+                print(f"  Game ended: all agents terminated", flush=True)
+                break
+
             # Render the game state after each action when in render mode
             if self.render_mode is not None:
                 env.render()
@@ -389,6 +394,7 @@ class MultiAgentTrainer:
                         print(f"  Step {step_count}, Round {current_round}, Turn {current_turn}, {active_players}/{num_players} players active")
 
         # Determine winner (player with most cash + property value)
+        print(f"  Determining winner...", flush=True)
         final_state = env.state
         if final_state is not None and hasattr(final_state, 'players'):
             player_values = []
@@ -406,14 +412,18 @@ class MultiAgentTrainer:
                 winner_id = participants[0]
         else:
             winner_id = participants[0]
+        print(f"  Winner determined: {winner_id}", flush=True)
 
         # Finish recording
+        print(f"  Finishing game recording...", flush=True)
         self.game_recorder.finish_recording(
             winner_id=winner_id,
             final_rewards=episode_rewards
         )
+        print(f"  Recording finished", flush=True)
 
         # Print game summary
+        print(f"  Printing game summary...", flush=True)
         if final_state is not None:
             final_round = final_state.round_number
             final_turn = final_state.turn_number
@@ -422,8 +432,11 @@ class MultiAgentTrainer:
             print(f"[Game {self.game_iteration}] Finished! Winner: {winner_id}, Steps: {step_count}")
 
         # Close environment (clean up renderer if applicable)
+        print(f"  Closing environment...", flush=True)
         env.close()
+        print(f"  Environment closed", flush=True)
 
+        print(f"  Returning game results...", flush=True)
         return {
             'participants': participants,
             'winner': winner_id,
@@ -436,25 +449,46 @@ class MultiAgentTrainer:
         print(f"\n[Game {self.game_iteration}] Updating models...")
 
         for agent_id, agent in self.agents.items():
+            print(f"  Updating {agent_id}...", flush=True)
             replay_buffer = self.replay_buffers[agent_id]
             ppo_trainer = self.ppo_trainers[agent_id]
 
             # Skip if buffer too small
-            if replay_buffer.size() < 64:
+            buffer_size = replay_buffer.size()
+            print(f"    Buffer size: {buffer_size}", flush=True)
+            if buffer_size < 64:
+                print(f"    Skipping (buffer too small)", flush=True)
                 continue
 
             # Get full batch
-            batch = replay_buffer.get_batch(batch_size=None)
+            print(f"    Getting batch...", flush=True)
+            try:
+                batch = replay_buffer.get_batch(batch_size=None)
+                print(f"    Batch retrieved successfully", flush=True)
+            except Exception as e:
+                print(f"    ERROR getting batch: {e}", flush=True)
+                continue
 
             # Update model
-            losses = ppo_trainer.update(batch)
+            print(f"    Running PPO update...", flush=True)
+            try:
+                losses = ppo_trainer.update(batch)
+                print(f"    PPO update complete", flush=True)
+            except Exception as e:
+                print(f"    ERROR in PPO update: {e}", flush=True)
+                import traceback
+                traceback.print_exc()
+                continue
 
             # Clear buffer
+            print(f"    Clearing buffer...", flush=True)
             replay_buffer.clear()
 
             print(f"  {agent_id}: policy_loss={losses['policy_loss']:.4f}, "
                   f"value_loss={losses['value_loss']:.4f}, "
                   f"entropy={losses['entropy']:.4f}")
+
+        print(f"[Game {self.game_iteration}] Model updates complete\n", flush=True)
 
     def train(
         self,
@@ -493,6 +527,7 @@ class MultiAgentTrainer:
                 participants,
                 env_seed=None  # Random each game
             )
+            print(f"[Game {game_num}] Completed, recording results...", flush=True)
 
             # Record result
             self.evaluator.record_game_result(
