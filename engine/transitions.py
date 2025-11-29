@@ -460,6 +460,9 @@ def advance_turn(state: GameState) -> GameState:
     """
     Advance to the next player's turn.
 
+    A round completes when all players (or all non-bankrupt players) have taken a turn,
+    i.e., when we cycle back to a lower player index.
+
     Args:
         state: Current game state
 
@@ -471,11 +474,19 @@ def advance_turn(state: GameState) -> GameState:
     # Reset doubles count if not rolling again
     new_state.doubles_count = 0
 
+    # Store previous player index to detect round completion
+    prev_player_idx = new_state.current_player_idx
+
     # Move to next non-bankrupt player
     while True:
         new_state.current_player_idx = (new_state.current_player_idx + 1) % len(new_state.players)
         if not new_state.players[new_state.current_player_idx].is_bankrupt:
             break
+
+    # Increment round number if we wrapped around to a lower index
+    # This indicates all players have completed a turn
+    if new_state.current_player_idx <= prev_player_idx:
+        new_state.round_number += 1
 
     new_state.turn_number += 1
 

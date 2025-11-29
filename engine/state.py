@@ -199,6 +199,7 @@ class GameState:
     players: List[PlayerState]
     current_player_idx: int = 0
     turn_number: int = 0
+    round_number: int = 0  # Tracks complete rounds (all players take a turn)
     current_phase: GamePhase = GamePhase.START
 
     # Board state
@@ -261,7 +262,8 @@ class GameConfig:
     num_players: int = 4
     starting_cash: int = 1500
     go_salary: int = 200
-    max_turns: int = 1000  # Prevent infinite games
+    max_rounds: int = 50  # Game ends after this many complete rounds
+    max_turns: int = 1000  # Legacy fallback (deprecated, use max_rounds)
     enable_free_parking_pool: bool = False
     enable_double_go_salary: bool = False  # Collect $400 if land exactly on GO
     jail_fine: int = 50

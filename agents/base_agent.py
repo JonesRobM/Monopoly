@@ -118,7 +118,7 @@ class RLAgent:
         return cls(agent_id, agent_config, board, action_encoder, total_training_games)
 
     def calculate_reward(self, state: GameState, prev_state: GameState,
-                        player_id: int) -> float:
+                        player_id: int, action_type=None) -> float:
         """
         Calculate reward for this agent given state transition.
 
@@ -128,11 +128,12 @@ class RLAgent:
             state: Current game state
             prev_state: Previous game state
             player_id: Player ID in the game (not agent_id)
+            action_type: Optional action type for action-specific rewards
 
         Returns:
             Weighted reward value
         """
-        return self.reward_shaper.calculate_reward(state, player_id, prev_state)
+        return self.reward_shaper.calculate_reward(state, player_id, prev_state, action_type)
 
     def get_action(self, observation: np.ndarray, action_mask: np.ndarray,
                    state: GameState, player_id: int,

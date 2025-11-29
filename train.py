@@ -112,10 +112,16 @@ def parse_args():
         help="Maximum number of players per game (4-6)"
     )
     parser.add_argument(
+        "--max_rounds",
+        type=int,
+        default=50,
+        help="Maximum rounds per game (each player takes a turn)"
+    )
+    parser.add_argument(
         "--max_turns",
         type=int,
-        default=1000,
-        help="Maximum turns per game before timeout"
+        default=None,
+        help="(Deprecated) Maximum turns per game before timeout"
     )
     parser.add_argument(
         "--watch",
@@ -147,7 +153,9 @@ def main():
     print(f"  Log frequency:          every {args.log_frequency} games")
     print(f"  Checkpoint frequency:   every {args.checkpoint_frequency} games")
     print(f"  Players per game:       {args.min_players}-{args.max_players}")
-    print(f"  Max turns per game:     {args.max_turns}")
+    print(f"  Max rounds per game:    {args.max_rounds}")
+    if args.max_turns is not None:
+        print(f"  Max turns per game:     {args.max_turns} (deprecated)")
     print(f"  Watch mode:             {'Enabled' if args.watch else 'Disabled'}")
     print(f"  Render mode:            {args.render if args.render else 'None (no rendering)'}")
     print(f"  Random seed:            {args.seed if args.seed else 'None (random)'}")
@@ -220,6 +228,7 @@ def main():
         device=device,
         seed=args.seed,
         watch_mode=args.watch,
+        max_rounds=args.max_rounds,
         max_turns=args.max_turns,
         min_players=args.min_players,
         max_players=args.max_players,

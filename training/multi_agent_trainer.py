@@ -53,7 +53,8 @@ class MultiAgentTrainer:
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
         seed: Optional[int] = None,
         watch_mode: bool = False,
-        max_turns: int = 1000,
+        max_rounds: int = 50,
+        max_turns: Optional[int] = None,
         min_players: int = 4,
         max_players: int = 6,
         render_mode: Optional[str] = None
@@ -72,7 +73,8 @@ class MultiAgentTrainer:
             device: Device for training (cuda/cpu)
             seed: Random seed
             watch_mode: If True, print detailed turn-by-turn information
-            max_turns: Maximum turns per game
+            max_rounds: Maximum rounds per game (each player takes a turn)
+            max_turns: (Deprecated) Maximum turns per game
             min_players: Minimum players per game
             max_players: Maximum players per game
             render_mode: Rendering mode (pygame, human, ansi, or None)
@@ -90,7 +92,8 @@ class MultiAgentTrainer:
         self.checkpoint_frequency = checkpoint_frequency
         self.device = device
         self.watch_mode = watch_mode
-        self.max_turns = max_turns
+        self.max_rounds = max_rounds
+        self.max_turns = max_turns  # Kept for backward compatibility
         self.min_players = min_players
         self.max_players = max_players
         self.render_mode = render_mode
@@ -210,6 +213,7 @@ class MultiAgentTrainer:
         env = MonopolyEnv(
             num_players=num_players,
             seed=env_seed,
+            max_rounds=self.max_rounds,
             max_turns=self.max_turns,
             render_mode=self.render_mode,
             player_names=player_display_names
@@ -239,8 +243,21 @@ class MultiAgentTrainer:
         turn_count = 0
         last_turn_report = 0
 
+        # Safety: maximum steps to prevent runaway games
+        # Typical game: ~500-2000 steps. Max rounds * num_players * 20 actions/turn should be safe upper bound
+        max_steps = self.max_rounds * num_players * 20
+
         # Game loop
         for agent_name in env.agent_iter():
+            # Safety check: prevent runaway games
+            if step_count >= max_steps:
+                if env.state:
+                    print(f"WARNING: Game exceeded maximum steps ({max_steps}) at round {env.state.round_number}, turn {env.state.turn_number}!")
+                else:
+                    print(f"WARNING: Game exceeded maximum steps ({max_steps})!")
+                print(f"  Terminating game early to prevent hang.")
+                break
+
             observation, reward, termination, truncation, info = env.last()
 
             # Get player index and agent ID
@@ -269,12 +286,17 @@ class MultiAgentTrainer:
                     deterministic=False
                 )
 
-                # Calculate custom reward
+                # Decode action to get action type for reward calculation
+                action_obj = env.action_encoder.decode(action)
+                action_type = action_obj.action_type
+
+                # Calculate custom reward with action type
                 if prev_state is not None and current_state is not None:
                     custom_reward = agent.calculate_reward(
                         current_state,
                         prev_state,
-                        player_id
+                        player_id,
+                        action_type
                     )
                 else:
                     custom_reward = 0.0
@@ -283,30 +305,38 @@ class MultiAgentTrainer:
 
                 # Get value estimate and log prob using tokenizer
                 if agent.tokenizer is not None:
-                    # Tokenize state
-                    property_tokens, player_tokens, game_token = agent.tokenizer.tokenize(current_state, player_id)
+                    # Tokenize state (as numpy arrays for replay buffer)
+                    property_tokens_np, player_tokens_np, game_token_np = agent.tokenizer.tokenize(current_state, player_id)
+
+                    # Create tokenized observation dict for replay buffer
+                    tokenized_obs = {
+                        'property_tokens': property_tokens_np,
+                        'player_tokens': player_tokens_np,
+                        'game_token': game_token_np
+                    }
 
                     # Get model device
                     model_device = next(agent.model.parameters()).device
 
                     # Convert to tensors and add batch dimension, create directly on target device
-                    property_tokens = torch.tensor(property_tokens, dtype=torch.float32, device=model_device).unsqueeze(0)
-                    player_tokens = torch.tensor(player_tokens, dtype=torch.float32, device=model_device).unsqueeze(0)
-                    game_token = torch.tensor(game_token, dtype=torch.float32, device=model_device).unsqueeze(0)
+                    property_tokens_tensor = torch.tensor(property_tokens_np, dtype=torch.float32, device=model_device).unsqueeze(0)
+                    player_tokens_tensor = torch.tensor(player_tokens_np, dtype=torch.float32, device=model_device).unsqueeze(0)
+                    game_token_tensor = torch.tensor(game_token_np, dtype=torch.float32, device=model_device).unsqueeze(0)
 
                     # Get value estimate and log prob (combined call for efficiency)
                     with torch.no_grad():
-                        _, log_prob_tensor, value_tensor = agent.model.get_action_and_value(property_tokens, player_tokens, game_token)
+                        _, log_prob_tensor, value_tensor = agent.model.get_action_and_value(property_tokens_tensor, player_tokens_tensor, game_token_tensor)
                         value = value_tensor.item()
                         log_prob = log_prob_tensor.item()
                 else:
-                    # Fallback if no tokenizer
+                    # Fallback if no tokenizer - use raw observation
+                    tokenized_obs = obs_dict
                     value = 0.0
                     log_prob = -1.0
 
-                # Store experience
+                # Store experience with tokenized observation
                 agent.store_experience(
-                    obs_dict,
+                    tokenized_obs,
                     action,
                     custom_reward,
                     value,
@@ -349,9 +379,14 @@ class MultiAgentTrainer:
             # Progress indicator every 50 steps (not in watch mode)
             if not self.watch_mode and step_count > 0 and step_count % 50 == 0:
                 if env.state is not None:
+                    current_round = env.state.round_number
                     current_turn = env.state.turn_number
                     active_players = sum(1 for p in env.state.players if not p.is_bankrupt)
-                    print(f"  Step {step_count}, Turn {current_turn}, {active_players}/{num_players} players active")
+                    # Extra detail when approaching max_rounds
+                    if current_round >= self.max_rounds - 5:
+                        print(f"  Step {step_count}, Round {current_round}/{self.max_rounds}, Turn {current_turn}, {active_players}/{num_players} players active [NEAR MAX_ROUNDS]")
+                    else:
+                        print(f"  Step {step_count}, Round {current_round}, Turn {current_turn}, {active_players}/{num_players} players active")
 
         # Determine winner (player with most cash + property value)
         final_state = env.state
@@ -359,8 +394,8 @@ class MultiAgentTrainer:
             player_values = []
             for i, player in enumerate(final_state.players):
                 if not player.is_bankrupt:
-                    # Simple valuation: cash + properties * 100
-                    value = player.cash + len(player.properties) * 100
+                    # Simple valuation: cash + owned_properties * 100
+                    value = player.cash + len(player.owned_properties) * 100
                     player_values.append((i, value))
 
             if player_values:
@@ -379,8 +414,12 @@ class MultiAgentTrainer:
         )
 
         # Print game summary
-        final_turn = final_state.turn_number if final_state is not None else 0
-        print(f"[Game {self.game_iteration}] Finished! Winner: {winner_id}, Turns: {final_turn}, Steps: {step_count}")
+        if final_state is not None:
+            final_round = final_state.round_number
+            final_turn = final_state.turn_number
+            print(f"[Game {self.game_iteration}] Finished! Winner: {winner_id}, Rounds: {final_round}, Turns: {final_turn}, Steps: {step_count}")
+        else:
+            print(f"[Game {self.game_iteration}] Finished! Winner: {winner_id}, Steps: {step_count}")
 
         # Close environment (clean up renderer if applicable)
         env.close()

@@ -58,7 +58,7 @@ class CustomRewardShaper:
             raise ValueError(f"Missing required weight keys. Need: {required_keys}")
 
     def calculate_reward(self, state: GameState, player_id: int,
-                        prev_state: GameState) -> float:
+                        prev_state: GameState, action_type=None) -> float:
         """
         Calculate total reward for a player given state transition.
 
@@ -66,6 +66,7 @@ class CustomRewardShaper:
             state: Current game state
             player_id: ID of player to calculate reward for
             prev_state: Previous game state
+            action_type: Optional action type to apply action-specific rewards
 
         Returns:
             Total weighted reward
@@ -87,6 +88,15 @@ class CustomRewardShaper:
             self.weights['trade_value'] * trade_reward +
             self.weights['monopoly_completion'] * monopoly_reward
         )
+
+        # Action cost: small penalty for each action to encourage turn efficiency
+        # This prevents agents from taking unlimited actions per turn
+        # END_TURN and forced actions (ROLL_DICE, etc.) have no penalty
+        from engine.actions import ActionType
+        if action_type and action_type not in [ActionType.END_TURN, ActionType.ROLL_DICE,
+                                                 ActionType.ROLL_FOR_JAIL, ActionType.NOOP]:
+            # Small penalty per action taken (encourages ending turns efficiently)
+            total_reward -= 0.01
 
         return total_reward
 
