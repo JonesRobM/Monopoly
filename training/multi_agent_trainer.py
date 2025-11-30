@@ -47,7 +47,7 @@ class MultiAgentTrainer:
         checkpoint_dir: Path,
         log_dir: Path,
         recording_dir: Path,
-        update_frequency: int = 10,
+        update_frequency: int = 20,
         log_frequency: int = 100,
         checkpoint_frequency: int = 1000,
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
@@ -67,7 +67,7 @@ class MultiAgentTrainer:
             checkpoint_dir: Directory for model checkpoints
             log_dir: Directory for training logs
             recording_dir: Directory for recorded games
-            update_frequency: Update models every N games
+            update_frequency: Update models every N games (default: 20 for curriculum learning)
             log_frequency: Log metrics every N games
             checkpoint_frequency: Save checkpoints every N games
             device: Device for training (cuda/cpu)
@@ -108,7 +108,7 @@ class MultiAgentTrainer:
         # Initialize components
         self.board = MonopolyBoard()  # Create standard Monopoly board
         self.action_encoder = ActionEncoder()  # Create action encoder
-        self.tokenizer = StateTokenizer(board=self.board)
+        self.tokenizer = StateTokenizer(board=self.board, max_players=6)  # Pad to 6 players for consistent shapes
         self.agents: Dict[str, RLAgent] = {}
         self.replay_buffers: Dict[str, PPOReplayBuffer] = {}
         self.ppo_trainers: Dict[str, PPOTrainer] = {}
@@ -160,10 +160,10 @@ class MultiAgentTrainer:
                 learning_rate=3e-4,
                 clip_epsilon=0.2,
                 value_coef=0.5,
-                entropy_coef=0.01,
+                entropy_coef=0.05,  # Increased from 0.01 for better exploration
                 max_grad_norm=0.5,
                 num_epochs=4,
-                minibatch_size=64
+                minibatch_size=128  # Increased from 64 for larger buffers
             )
 
             # Attach model, tokenizer, and replay buffer to agent
@@ -174,6 +174,53 @@ class MultiAgentTrainer:
             self.agents[agent_id] = agent
             self.replay_buffers[agent_id] = replay_buffer
             self.ppo_trainers[agent_id] = ppo_trainer
+
+    def get_max_rounds_for_phase(self, game_iteration: int) -> int:
+        """
+        Get maximum rounds based on curriculum phase.
+
+        Curriculum learning: Start with shorter games for faster credit assignment,
+        gradually increase to full game length as agents improve.
+
+        Args:
+            game_iteration: Current game iteration
+
+        Returns:
+            Maximum rounds for this phase
+        """
+        if game_iteration < 1000:
+            # Phase 1: Fast games for basic learning
+            return 15
+        elif game_iteration < 3000:
+            # Phase 2: Medium games for strategic development
+            return 25
+        else:
+            # Phase 3: Full games
+            return 50
+
+    def get_max_actions_per_turn(self, game_iteration: int, num_players: int) -> int:
+        """
+        Get maximum actions per turn based on curriculum phase and number of players.
+
+        Curriculum learning: Start with fewer actions per turn to encourage decisive play,
+        gradually increase to allow more complex multi-action strategies.
+
+        Args:
+            game_iteration: Current game iteration
+            num_players: Number of players in the game
+
+        Returns:
+            Maximum actions allowed per turn before forcing END_TURN
+        """
+        if game_iteration < 1000:
+            # Phase 1: Basic learning - 10x number of players
+            return 10 * num_players
+        elif game_iteration < 3000:
+            # Phase 2: Strategic development - 20x number of players
+            return 20 * num_players
+        else:
+            # Phase 3: Full complexity - 50x number of players
+            return 50 * num_players
 
     def select_game_participants(self) -> List[str]:
         """
@@ -209,14 +256,19 @@ class MultiAgentTrainer:
         # Get player display names (use agent names)
         player_display_names = [self.agents[agent_id].name for agent_id in participants]
 
+        # CURRICULUM LEARNING: Use phase-based max_rounds and max_actions_per_turn
+        curriculum_max_rounds = self.get_max_rounds_for_phase(self.game_iteration)
+        curriculum_max_actions = self.get_max_actions_per_turn(self.game_iteration, num_players)
+
         # Create environment
         env = MonopolyEnv(
             num_players=num_players,
             seed=env_seed,
-            max_rounds=self.max_rounds,
+            max_rounds=curriculum_max_rounds,
             max_turns=self.max_turns,
             render_mode=self.render_mode,
-            player_names=player_display_names
+            player_names=player_display_names,
+            max_actions_per_turn=curriculum_max_actions
         )
         env.reset()
 
@@ -480,9 +532,10 @@ class MultiAgentTrainer:
                 traceback.print_exc()
                 continue
 
-            # Clear buffer
-            print(f"    Clearing buffer...", flush=True)
-            replay_buffer.clear()
+            # CURRICULUM FIX: Don't clear buffer - keep accumulating experiences
+            # Buffers now maintain 50K transitions (rolling window)
+            # This provides more diverse training data and better sample efficiency
+            print(f"    Buffer retained ({replay_buffer.size()} transitions)", flush=True)
 
             print(f"  {agent_id}: policy_loss={losses['policy_loss']:.4f}, "
                   f"value_loss={losses['value_loss']:.4f}, "
@@ -518,6 +571,20 @@ class MultiAgentTrainer:
 
         for game_num in range(start_game, start_game + num_games):
             self.game_iteration = game_num
+
+            # Log curriculum phase transitions
+            if game_num == 1000:
+                print(f"\n{'='*60}")
+                print(f"CURRICULUM PHASE TRANSITION: Phase 1 → Phase 2")
+                print(f"Increasing max_rounds: 15 → 25")
+                print(f"Increasing max_actions_per_turn: 10x players → 20x players")
+                print(f"{'='*60}\n")
+            elif game_num == 3000:
+                print(f"\n{'='*60}")
+                print(f"CURRICULUM PHASE TRANSITION: Phase 2 → Phase 3")
+                print(f"Increasing max_rounds: 25 → 50 (Full Games)")
+                print(f"Increasing max_actions_per_turn: 20x players → 50x players")
+                print(f"{'='*60}\n")
 
             # Select participants
             participants = self.select_game_participants()
@@ -555,6 +622,9 @@ class MultiAgentTrainer:
                 print(f"{'='*60}")
                 self.evaluator.log_metrics(game_iteration=game_num + 1, verbose=True)
 
+                # Print reward diagnostics (helps identify learning issues)
+                self.evaluator.print_reward_diagnostics(game_iteration=game_num + 1, last_n=100)
+
                 # Print alpha values
                 print("\nAlpha values:")
                 for agent_id, agent in self.agents.items():
@@ -573,6 +643,9 @@ class MultiAgentTrainer:
 
         # Final evaluation
         self.evaluator.log_metrics(game_iteration=start_game + num_games, verbose=True)
+
+        # Final reward diagnostics
+        self.evaluator.print_reward_diagnostics(game_iteration=start_game + num_games, last_n=100)
 
         # Save final checkpoints
         self.save_checkpoints(start_game + num_games)

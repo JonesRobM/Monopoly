@@ -6,14 +6,16 @@ heuristic and learned policies:
 
     action_probs = alpha × heuristic_probs + (1 - alpha) × learned_probs
 
-Alpha starts high (agents follow heuristics closely) and anneals down
-over training (agents learn to deviate from heuristics when beneficial).
+HEURISTIC-PRIMARY PHILOSOPHY:
+Alpha stays HIGH (0.6-0.8 initial) to keep heuristics as the primary strategy driver.
+RL learns tactical optimizations (20-40% influence) within the heuristic framework.
+This preserves agent personality/differentiation while allowing tactical improvement.
 
 Different agents have different annealing schedules reflecting their
 personality "rigidity":
-- Alice: 0.8 → 0.5 (stays rule-based)
-- Jack: 0.7 → 0.05 (becomes mostly learned/chaotic)
-- Irene: 0.5 → 0.2 (balanced throughout)
+- Alice: 0.8 → 0.6 (very conservative, stays mostly heuristic)
+- Jack: 0.5 → 0.3 (most RL influence, but still heuristic-guided)
+- Others: 0.6-0.7 → 0.4-0.5 (balanced heuristic-primary)
 """
 
 from typing import Dict
@@ -86,38 +88,40 @@ class AlphaSchedule:
         return alpha
 
 
-# Per-agent alpha configurations
+# Per-agent alpha configurations (HEURISTIC-PRIMARY)
 # Format: agent_id -> (alpha_initial, alpha_final, schedule_type)
+# High alphas (0.5-0.8) keep heuristics as primary strategy driver
+# RL contributes tactical optimizations (20-40% influence)
 ALPHA_CONFIGS: Dict[str, tuple[float, float, str]] = {
-    # Alice: Conservative, rule-based → stays mostly rule-based
-    'alice': (0.8, 0.5, 'linear'),
+    # Alice: Conservative, rule-based → stays very heuristic
+    'alice': (0.8, 0.6, 'linear'),
 
-    # Bob: High-value acquirer → moderate learning
-    'bob': (0.7, 0.3, 'linear'),
+    # Bob: High-value acquirer → heuristic focus maintained
+    'bob': (0.7, 0.5, 'linear'),
 
-    # Charlie: Infrastructure collector → moderate learning
-    'charlie': (0.6, 0.3, 'linear'),
+    # Charlie: Infrastructure collector → heuristic strategy preserved
+    'charlie': (0.7, 0.5, 'linear'),
 
-    # Dee: Trade specialist → learns flexibility for trades
-    'dee': (0.5, 0.2, 'linear'),
+    # Dee: Trade specialist → balanced heuristic-primary
+    'dee': (0.6, 0.4, 'linear'),
 
-    # Ethel: Property hoarder → moderate learning
-    'ethel': (0.7, 0.4, 'linear'),
+    # Ethel: Property hoarder → balanced heuristic-primary
+    'ethel': (0.6, 0.4, 'linear'),
 
-    # Frankie: Development maximiser → aggressive learning
-    'frankie': (0.6, 0.2, 'exponential'),
+    # Frankie: Development maximiser → heuristic builder focus
+    'frankie': (0.7, 0.5, 'linear'),
 
-    # Greta: Monopoly completer → moderate learning
-    'greta': (0.6, 0.3, 'linear'),
+    # Greta: Monopoly completer → balanced heuristic-primary
+    'greta': (0.6, 0.4, 'linear'),
 
-    # Harry: Resource denial → learns to block strategically
-    'harry': (0.6, 0.3, 'linear'),
+    # Harry: Resource denial → heuristic blocking strategy
+    'harry': (0.7, 0.5, 'linear'),
 
-    # Irene: Balanced investor → balanced throughout
-    'irene': (0.5, 0.2, 'linear'),
+    # Irene: Balanced investor → balanced heuristic-primary
+    'irene': (0.6, 0.4, 'linear'),
 
-    # Jack: Hyper-aggressive → becomes mostly learned/chaotic
-    'jack': (0.7, 0.05, 'exponential'),
+    # Jack: Hyper-aggressive → most RL influence but still heuristic-guided
+    'jack': (0.5, 0.3, 'linear'),
 }
 
 

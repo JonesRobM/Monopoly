@@ -33,7 +33,7 @@ class PPOTrainer:
                  entropy_coef: float = 0.01,
                  max_grad_norm: float = 0.5,
                  num_epochs: int = 4,
-                 minibatch_size: int = 64):
+                 minibatch_size: int = 128):
         """
         Initialize PPO trainer.
 

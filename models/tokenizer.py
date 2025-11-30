@@ -26,17 +26,19 @@ class StateTokenizer:
     """
 
     def __init__(self, board: MonopolyBoard, num_players: int = 4,
-                 max_cash: float = 10000.0):
+                 max_players: int = 6, max_cash: float = 10000.0):
         """
         Initialize state tokenizer.
 
         Args:
             board: Monopoly board instance
-            num_players: Number of players in game (2-6)
+            num_players: Number of players in game (2-6) - deprecated, use max_players
+            max_players: Maximum number of players (for padding)
             max_cash: Maximum cash for normalization
         """
         self.board = board
-        self.num_players = num_players
+        self.num_players = num_players  # Kept for backward compatibility
+        self.max_players = max_players  # Use this for consistent tensor shapes
         self.max_cash = max_cash
 
         # Feature dimensions
@@ -91,7 +93,7 @@ class StateTokenizer:
         Returns:
             Tuple of (property_tokens, player_tokens, game_token):
             - property_tokens: (40, property_feature_dim)
-            - player_tokens: (num_players, player_feature_dim)
+            - player_tokens: (max_players, player_feature_dim) - PADDED to max_players
             - game_token: (1, game_feature_dim)
         """
         property_tokens = self.tokenize_properties(state)
@@ -169,19 +171,23 @@ class StateTokenizer:
 
     def tokenize_players(self, state: GameState, observing_player_id: int) -> np.ndarray:
         """
-        Tokenize all players.
+        Tokenize all players with padding to max_players.
 
         Args:
             state: Current game state
             observing_player_id: ID of observing player
 
         Returns:
-            Player tokens (num_players, player_feature_dim)
+            Player tokens (max_players, player_feature_dim) - PADDED with zeros
         """
+        # CRITICAL FIX: Always return max_players tokens (padded with zeros)
+        # This ensures consistent tensor shapes across games with different player counts
+        tokens = np.zeros((self.max_players, self.player_feature_dim), dtype=np.float32)
+
         # Determine actual number of players from state
         actual_num_players = len(state.players)
-        tokens = np.zeros((actual_num_players, self.player_feature_dim), dtype=np.float32)
 
+        # Fill in actual player data (rest remains zeros for padding)
         for i in range(actual_num_players):
             player = state.players[i]
 
@@ -242,8 +248,8 @@ class StateTokenizer:
         return token
 
     def get_total_sequence_length(self) -> int:
-        """Get total sequence length (40 properties + num_players + 1 game)."""
-        return 40 + self.num_players + 1
+        """Get total sequence length (40 properties + max_players + 1 game)."""
+        return 40 + self.max_players + 1
 
     def get_feature_dims(self) -> Tuple[int, int, int]:
         """

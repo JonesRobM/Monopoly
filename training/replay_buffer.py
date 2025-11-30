@@ -26,7 +26,7 @@ class PPOReplayBuffer:
     for PPO updates. Implements Generalized Advantage Estimation (GAE).
     """
 
-    def __init__(self, max_size: int = 10000):
+    def __init__(self, max_size: int = 50000):
         """
         Initialize replay buffer.
 
@@ -131,11 +131,17 @@ class PPOReplayBuffer:
         }
 
         # Compute advantages and returns using GAE
+        # CURRICULUM FIX: Increased gamma from 0.95 to 0.98 for better long-term credit assignment
+        # With gamma=0.98, effective horizon = 1/(1-0.98) = 50 steps
+        # This allows learning from longer-term consequences in Monopoly (property ROI, monopoly completion)
+        # Combined with curriculum learning (starting with shorter games), this balances:
+        #   - Phase 1 (15 rounds): 50-step horizon still captures most of game
+        #   - Phase 2-3 (25-50 rounds): Better credit assignment for strategic decisions
         advantages, returns = self._compute_gae(
             torch.FloatTensor(self.rewards),
             torch.FloatTensor(self.values),
             torch.FloatTensor([float(d) for d in self.dones]),
-            gamma=0.99,
+            gamma=0.98,  # Increased from 0.95 for curriculum learning
             gae_lambda=0.95
         )
 

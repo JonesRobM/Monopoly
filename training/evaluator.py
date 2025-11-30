@@ -175,6 +175,64 @@ class Evaluator:
 
         print(f"{'='*60}\n")
 
+    def print_reward_diagnostics(self, game_iteration: int, last_n: int = 100):
+        """
+        Print detailed reward statistics for diagnostics.
+
+        Shows mean, std, min, max, and variance to help identify learning issues.
+
+        Args:
+            game_iteration: Current game iteration
+            last_n: Number of recent games to analyze
+        """
+        print(f"\n{'='*80}")
+        print(f"Reward Diagnostics at Game {game_iteration} (last {last_n} games)")
+        print(f"{'='*80}")
+        print(f"{'Agent':<12} {'Mean':<10} {'Std':<10} {'Min':<10} {'Max':<10} {'Range':<10}")
+        print(f"{'-'*80}")
+
+        for agent_id in sorted(self.agent_ids):
+            # Get last N rewards for this agent
+            all_rewards = [r for r in self.game_rewards[agent_id] if r is not None]
+
+            if len(all_rewards) == 0:
+                print(f"{agent_id:<12} {'N/A':<10} {'N/A':<10} {'N/A':<10} {'N/A':<10} {'N/A':<10}")
+                continue
+
+            recent_rewards = all_rewards[-last_n:]
+
+            if len(recent_rewards) > 0:
+                mean_reward = np.mean(recent_rewards)
+                std_reward = np.std(recent_rewards)
+                min_reward = np.min(recent_rewards)
+                max_reward = np.max(recent_rewards)
+                reward_range = max_reward - min_reward
+
+                print(f"{agent_id:<12} {mean_reward:>9.2f} {std_reward:>9.2f} "
+                      f"{min_reward:>9.2f} {max_reward:>9.2f} {reward_range:>9.2f}")
+            else:
+                print(f"{agent_id:<12} {'N/A':<10} {'N/A':<10} {'N/A':<10} {'N/A':<10} {'N/A':<10}")
+
+        print(f"{'='*80}")
+
+        # Check if rewards are being clipped (all in [-10, 10])
+        all_recent_rewards = []
+        for agent_id in self.agent_ids:
+            all_rewards = [r for r in self.game_rewards[agent_id] if r is not None]
+            all_recent_rewards.extend(all_rewards[-last_n:])
+
+        if all_recent_rewards:
+            clipped_count = sum(1 for r in all_recent_rewards if abs(r) >= 9.9)
+            total_count = len(all_recent_rewards)
+            clip_pct = 100.0 * clipped_count / total_count if total_count > 0 else 0
+
+            print(f"Reward Clipping: {clipped_count}/{total_count} ({clip_pct:.1f}%) at boundaries")
+            if clip_pct > 50:
+                print(f"WARNING: >50% of rewards hitting clip boundaries!")
+                print(f"   Consider adjusting reward scales or clip limits.")
+
+        print(f"{'='*80}\n")
+
     def log_metrics(self, game_iteration: int, verbose: bool = True):
         """
         Log current metrics.

@@ -3,14 +3,17 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "monopoly-ai"
+name = "monopoly-rl"
 version = "0.1.0"
-description = "A reproducible multi-agent Monopoly environment for reinforcement learning research"
+description = "A reproducible multi-agent Monopoly environment for reinforcement learning research with curriculum learning and PPO training"
 readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Rob Jones", email = "jones.rob@example.com"}
+]
+maintainers = [
+    {name = "Rob Jones", email = "jones.rob@example.com"}
 ]
 keywords = ["reinforcement-learning", "multi-agent", "monopoly", "pettingzoo", "game-ai"]
 classifiers = [
@@ -71,12 +74,19 @@ Documentation = "https://github.com/JonesRobM/monopoly-ai/blob/main/README.md"
 Repository = "https://github.com/JonesRobM/monopoly-ai"
 "Bug Tracker" = "https://github.com/JonesRobM/monopoly-ai/issues"
 
+[project.scripts]
+monopoly-train = "train:main"
+monopoly-play = "play_human:main"
+
 [tool.setuptools]
-packages = ["engine", "env"]
+packages = ["engine", "env", "agents", "training", "analysis", "config"]
 
 [tool.setuptools.package-data]
 engine = ["py.typed"]
 env = ["py.typed"]
+agents = ["py.typed"]
+training = ["py.typed"]
+config = ["*.json"]
 
 # Black configuration
 [tool.black]
