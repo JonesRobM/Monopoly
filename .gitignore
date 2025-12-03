@@ -205,3 +205,29 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Monopoly RL Training Artifacts
+# Training logs
+logs/
+*.log
+
+# Model checkpoints and trained models
+models/checkpoints/
+*.pt
+*.pth
+*.pkl
+*.ckpt
+
+# Game recordings
+recordings/
+
+# Training results and metrics
+training_results.csv
+*_results.csv
+
+# Temporary analysis files
+*.png
+*.jpg
+*.jpeg
+board_screenshot.png
+full_board_*.png
