@@ -24,6 +24,11 @@ include example_usage.py
 # Type checking markers
 include engine/py.typed
 include env/py.typed
+include agents/py.typed
+include training/py.typed
+
+# Configuration files for agents
+recursive-include config *.json
 
 # Exclude compiled and cache files
 global-exclude __pycache__
